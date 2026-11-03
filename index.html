@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Honorários</title>
+<meta name="theme-color" content="#0f2a3d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Honorários">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<style>
+:root{
+  --bg:#f3f5f7; --card:#fff; --ink:#122433; --muted:#5f7180; --line:#e1e6eb;
+  --brand:#0f2a3d; --acc:#0e9384; --acc-soft:#e0f4f1; --warn:#b54708; --warn-soft:#fff4e5;
+  --bad:#c0362c; --bad-soft:#fdecea; --ok:#127a3f;
+  --g0:#0e9384; --g1:#3b5bdb; --g2:#9c36b5;
+  --r:14px; --safe-t:env(safe-area-inset-top); --safe-b:env(safe-area-inset-bottom);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0b141b; --card:#131f29; --ink:#e8eef2; --muted:#93a4b1; --line:#22323f;
+  --brand:#0b1a26; --acc:#2bb3a3; --acc-soft:#123a36; --warn:#f2a54a; --warn-soft:#3a2a12;
+  --bad:#ef6b61; --bad-soft:#3d1a18; --ok:#4cc47f; --g0:#2bb3a3; --g1:#7d95ff; --g2:#cf7de0;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+header.top{position:sticky;top:0;z-index:20;background:var(--brand);color:#fff;padding:calc(var(--safe-t) + 10px) 16px 12px;display:flex;align-items:center;gap:10px}
+header.top h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.2px;flex:1}
+#syncPill{font-size:12px;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.12);display:flex;align-items:center;gap:6px;border:0;color:#fff}
+#syncPill i{width:8px;height:8px;border-radius:50%;background:#9aa;display:inline-block}
+#syncPill.ok i{background:#4cd18a}#syncPill.busy i{background:#f5c04a}#syncPill.err i{background:#ff6b5e}#syncPill.off i{background:#9aa}
+main{padding:14px 14px calc(96px + var(--safe-b));max-width:900px;margin:0 auto}
+.view{display:none}.view.on{display:block}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(6px + var(--safe-b))}
+nav.tabs button{flex:1;border:0;background:none;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted)}
+nav.tabs button svg{width:24px;height:24px}
+nav.tabs button.on{color:var(--acc)}
+nav.tabs button.add span.dot{width:46px;height:34px;border-radius:12px;background:var(--acc);color:#fff;display:grid;place-items:center}
+.card{background:var(--card);border-radius:var(--r);padding:14px;margin-bottom:12px;border:1px solid var(--line)}
+h2{font-size:17px;margin:4px 2px 10px}
+h3{font-size:15px;margin:0 0 8px}
+.muted{color:var(--muted)}.small{font-size:13px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:600;background:var(--acc);color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px}
+.btn.sec{background:var(--acc-soft);color:var(--acc)}
+.btn.ghost{background:transparent;color:var(--acc);border:1px solid var(--line)}
+.btn.danger{background:var(--bad-soft);color:var(--bad)}
+.btn.block{width:100%}
+.btn:disabled{opacity:.5}
+.big{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.big .btn{flex-direction:column;min-height:110px;font-size:15px;text-align:center}
+.big .btn svg{width:34px;height:34px}
+label.f{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+input.i,select.i,textarea.i{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:16px}
+textarea.i{min-height:150px;font-family:ui-monospace,Menlo,monospace;font-size:13px}
+input.i.miss,select.i.miss{border-color:var(--bad);background:var(--bad-soft)}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:none;padding:8px 4px;border-radius:8px;font-size:13px;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:7px 12px;font-size:13px;white-space:nowrap;font-weight:600;color:var(--muted)}
+.chip.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:3px 8px;border-radius:99px;color:#fff;white-space:nowrap}
+.badge.g0{background:var(--g0)}.badge.g1{background:var(--g1)}.badge.g2{background:var(--g2)}.badge.g3{background:#777}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 8px;text-align:center}
+.stat b{display:block;font-size:20px}.stat span{font-size:11px;color:var(--muted)}
+.tablewrap{overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:var(--r);background:var(--card);max-height:62vh}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:8px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;white-space:nowrap}
+td.proc{white-space:normal;min-width:170px}
+th{position:sticky;top:0;background:var(--card);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;z-index:1}
+tbody tr:active{background:var(--acc-soft)}
+td.pac{white-space:normal;min-width:118px;font-weight:600}
+.dica{font-size:12px;color:var(--muted);text-align:right;margin:-4px 2px 6px}
+@media (min-width:700px){.dica{display:none}}
+tr.mes td{background:var(--bg);font-weight:700;font-size:13px;color:var(--muted);position:static}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty svg{width:56px;height:56px;opacity:.5}
+.prog{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:8px}
+.prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.guia{border-left:4px solid var(--acc)}
+.guia.warn{border-left-color:var(--warn)}
+.guia .head{display:flex;gap:12px;align-items:flex-start}
+.guia img.th{width:76px;height:76px;object-fit:cover;border-radius:10px;border:1px solid var(--line);flex:none;background:var(--bg)}
+.proc-item{border:1px dashed var(--line);border-radius:12px;padding:4px 10px 10px;margin-top:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.note{font-size:13px;padding:8px 10px;border-radius:10px;margin-top:8px}
+.note.warn{background:var(--warn-soft);color:var(--warn)}
+.note.bad{background:var(--bad-soft);color:var(--bad)}
+.note.ok{background:var(--acc-soft);color:var(--acc)}
+.note.info{background:var(--bg);color:var(--muted)}
+details{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+details summary{font-weight:600;color:var(--acc);cursor:pointer}
+ol.steps{padding-left:20px;margin:8px 0}ol.steps li{margin:6px 0}
+code,kbd{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 5px;font-size:13px}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.sheet{background:var(--card);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + var(--safe-b))}
+.sheet .grab{width:40px;height:5px;border-radius:5px;background:var(--line);margin:0 auto 10px}
+.viewer{position:fixed;inset:0;z-index:60;background:#000;display:none;overflow:auto}
+.viewer.on{display:block}
+.viewer img{width:100%;display:block}
+.viewer.zoom img{width:260%}
+.viewer .x{position:fixed;top:calc(var(--safe-t) + 10px);right:12px;z-index:2;background:rgba(255,255,255,.9);color:#000;border:0;border-radius:99px;padding:8px 14px;font-weight:700}
+.viewer .hint{position:fixed;bottom:calc(var(--safe-b) + 14px);left:0;right:0;text-align:center;color:#fff;font-size:13px;opacity:.8}
+#toast{position:fixed;left:50%;bottom:calc(90px + var(--safe-b));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--card);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:.25s;z-index:70;max-width:90vw;text-align:center;pointer-events:none}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.toolbar{display:flex;gap:8px;margin:10px 0}
+.toolbar .btn{flex:1;min-height:42px;padding:8px 10px;font-size:14px}
+.search{position:relative}
+.search input{padding-left:36px}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
+.learn-list div{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.learn-list button{border:0;background:none;color:var(--bad);font-weight:600}
+.pre{white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;max-height:240px;overflow:auto}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Honorários</h1>
+  <button id="syncPill" class="off" title="Backup"><i></i><span>Sem backup</span></button>
+</header>
+
+<main>
+<!-- ================= GUIAS (TABELA) ================= -->
+<section class="view on" id="v-lista">
+  <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input class="i" id="busca" type="search" placeholder="Buscar paciente, código, atendimento…"></div>
+  <div class="row" style="margin-top:10px">
+    <select class="i" id="fMes" style="flex:1"></select>
+  </div>
+  <div class="chips" id="fGrau" style="margin-top:10px">
+    <button class="chip on" data-g="">Todos</button>
+    <button class="chip" data-g="0">0 · Principal</button>
+    <button class="chip" data-g="1">1 · 1º auxiliar</button>
+    <button class="chip" data-g="2">2 · 2º auxiliar</button>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div id="tabela"></div>
+  <div class="toolbar">
+    <button class="btn sec" id="btExport"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v3h16v-3"/></svg>Planilha</button>
+    <button class="btn sec" id="btCopiar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Copiar</button>
+  </div>
+</section>
+
+<!-- ================= ADICIONAR ================= -->
+<section class="view" id="v-add">
+  <div id="addInicio">
+    <h2>Adicionar guias</h2>
+    <div class="big">
+      <button class="btn" id="btFotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Fotos das guias<span class="small" style="font-weight:400;opacity:.9">leitura grátis no app</span></button>
+      <button class="btn sec" id="btColar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M9 12h6M9 16h4"/></svg>Colar do Adapta<span class="small" style="font-weight:400;opacity:.9">resposta do Expert</span></button>
+    </div>
+    <input type="file" id="arquivos" accept="image/*,application/pdf" multiple class="hidden">
+    <button class="btn ghost block" id="btManual" style="margin-top:10px">+ Digitar uma guia manualmente</button>
+    <div class="card" style="margin-top:14px">
+      <h3>Dicas para a leitura sair certa</h3>
+      <div class="small muted">Folha aberta e lisa, boa luz, sem sombra do celular em cima. Pode tirar a foto deitada: o app gira sozinho. Na folha do Dona Helena, o código escrito à mão você confere olhando a foto na tela de conferência.</div>
+    </div>
+  </div>
+
+  <div id="addColar" class="hidden">
+    <h2>Colar resposta do Adapta</h2>
+    <div class="card">
+      <div class="small muted">No Adapta, abra o Expert <b>Guias de Honorário</b>, envie as fotos e toque em copiar no bloco de resposta. Depois cole aqui.</div>
+      <textarea class="i" id="txtColar" style="margin-top:10px" placeholder="Paciente | Atendimento | Grau | Código | Procedimento | Data"></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="btn sec" id="btColarClip" style="flex:1">Colar</button>
+        <button class="btn" id="btLerColado" style="flex:2">Conferir</button>
+      </div>
+      <button class="btn ghost block" style="margin-top:8px" data-voltar>Voltar</button>
+    </div>
+  </div>
+
+  <div id="addProc" class="hidden">
+    <h2>Lendo as guias…</h2>
+    <div class="card"><div id="procMsg">Preparando…</div><div class="prog"><i id="procBar"></i></div>
+      <div class="small muted" style="margin-top:8px" id="procSub">Na primeira vez o app baixa o leitor (cerca de 12 MB). Depois fica guardado.</div></div>
+  </div>
+
+  <div id="addRev" class="hidden">
+    <h2>Conferir antes de salvar</h2>
+    <div class="note info" style="margin:-4px 0 12px">Campos em vermelho precisam ser preenchidos. Toque na foto para ampliar.</div>
+    <div id="revLista"></div>
+    <div class="row" style="position:sticky;bottom:calc(76px + var(--safe-b));background:var(--bg);padding:8px 0">
+      <button class="btn ghost" id="btCancelRev" style="flex:1">Cancelar</button>
+      <button class="btn" id="btSalvarRev" style="flex:2">Salvar na tabela</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= AJUSTES ================= -->
+<section class="view" id="v-cfg">
+  <h2>Backup automático</h2>
+  <div class="card">
+    <div id="ghStatus" class="note info" style="margin-top:0">Backup ainda não configurado. Sem ele, se o iPhone apagar os dados do navegador, a tabela é perdida.</div>
+    <label class="f">Usuário do GitHub</label><input class="i" id="ghOwner" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="ex.: tiagoforgiarini">
+    <label class="f">Nome do repositório privado</label><input class="i" id="ghRepo" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="honorarios-dados">
+    <label class="f">Chave de acesso (token)</label><input class="i" id="ghToken" type="password" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="btGhSalvar" style="flex:2">Conectar</button>
+      <button class="btn sec" id="btGhSync" style="flex:1">Sincronizar</button>
+    </div>
+    <details>
+      <summary>Como configurar (passo a passo, uma vez só)</summary>
+      <ol class="steps small">
+        <li>Crie uma conta grátis em <b>github.com</b> (se ainda não tiver). Anote o nome de usuário.</li>
+        <li>Toque no <b>+</b> no topo → <b>New repository</b>. Nome: <code>honorarios-dados</code>. Marque <b>Private</b> (muito importante). Toque em <b>Create repository</b>.</li>
+        <li>Abra <b>github.com/settings/personal-access-tokens/new</b> (Settings → Developer settings → Fine-grained tokens → Generate new token).</li>
+        <li>Token name: <code>app honorarios</code>. Expiration: escolha a mais longa (ou "No expiration").</li>
+        <li>Em <b>Repository access</b> escolha <b>Only select repositories</b> e selecione <code>honorarios-dados</code>.</li>
+        <li>Em <b>Permissions → Repository permissions → Contents</b> escolha <b>Read and write</b>. Não precisa de mais nada.</li>
+        <li>Toque em <b>Generate token</b> e copie o código (começa com <code>github_pat_</code>).</li>
+        <li>Cole aqui junto com o usuário e o nome do repositório e toque em <b>Conectar</b>.</li>
+        <li><b>Guarde o token</b> no app Senhas ou nas Notas do iPhone. Se um dia os dados do app sumirem, é só colar de novo e tudo volta.</li>
+      </ol>
+      <div class="small muted">O token só dá acesso a esse repositório. Ele fica salvo apenas neste iPhone.</div>
+    </details>
+  </div>
+
+  <h2>Preferências</h2>
+  <div class="card">
+    <label class="f" style="margin-top:0">Grau quando a guia não informar</label>
+    <div class="seg" id="cfgGrau">
+      <button data-g="0">0 · Principal</button><button data-g="1">1 · 1º aux</button><button data-g="2">2 · 2º aux</button>
+    </div>
+    <label class="f">Seu nome (para o app não confundir com o paciente)</label>
+    <input class="i" id="cfgNome" placeholder="Nome do profissional">
+  </div>
+
+  <h2>Adapta</h2>
+  <div class="card">
+    <div class="small">Crie um <b>Expert</b> no Adapta chamado <b>Guias de Honorário</b> e cole nele as instruções abaixo. Depois é só mandar as fotos para esse Expert e colar a resposta no app.</div>
+    <button class="btn block" id="btCopiarExpert" style="margin-top:10px">Copiar instruções do Expert</button>
+    <details><summary>Ver instruções</summary><div class="pre" id="expertTxt" style="margin-top:8px"></div></details>
+  </div>
+
+  <h2>Procedimentos aprendidos</h2>
+  <div class="card">
+    <div class="small muted">Quando você salva um código com o nome do procedimento, o app guarda e preenche sozinho da próxima vez.</div>
+    <div class="learn-list" id="learnList"></div>
+  </div>
+
+  <h2>Cópia de segurança manual</h2>
+  <div class="card">
+    <div class="row">
+      <button class="btn sec" id="btBaixarBkp" style="flex:1">Salvar arquivo</button>
+      <button class="btn ghost" id="btRestBkp" style="flex:1">Restaurar arquivo</button>
+    </div>
+    <input type="file" id="bkpFile" accept="application/json,.json" class="hidden">
+  </div>
+
+  <h2>Instalar no iPhone</h2>
+  <div class="card small">
+    <ol class="steps">
+      <li>Abra este endereço no <b>Safari</b> (precisa ser o Safari).</li>
+      <li>Toque em <b>Compartilhar</b> (quadrado com seta para cima).</li>
+      <li>Role e toque em <b>Adicionar à Tela de Início</b> → <b>Adicionar</b>.</li>
+      <li>Use sempre pelo ícone <b>Honorários</b> da tela inicial.</li>
+    </ol>
+  </div>
+  <div class="small muted" style="text-align:center;margin:16px 0" id="versao"></div>
+</section>
+</main>
+
+<nav class="tabs">
+  <button data-v="v-lista" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 9v11"/></svg>Tabela</button>
+  <button data-v="v-add" class="add"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span>Adicionar</button>
+  <button data-v="v-cfg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Ajustes</button>
+</nav>
+
+<div class="modal" id="modal"><div class="sheet"><div class="grab"></div><div id="modalBody"></div></div></div>
+<div class="viewer" id="viewer"><button class="x" id="viewerX">Fechar</button><img id="viewerImg" alt=""><div class="hint">Toque na imagem para aproximar</div></div>
+<div id="toast"></div>
+
+<datalist id="dlCodigos"></datalist>
+<datalist id="dlProcs"></datalist>
+
+<script>
+// ===== Regras de extração (texto lido da foto -> linhas da tabela) =====
+const Parser = (() => {
+  const LETRAS = 'A-Za-zÀ-ÖØ-öø-ÿ';
+  const soDigitos = s => (s || '').replace(/\D/g, '');
+
+  function detectarModelo(txt) {
+    const t = txt.toUpperCase();
+    if (/HDH|DONA\s*HELENA|PROCEDIMENTOS\s*\/?\s*EXAMES|HELENA/.test(t)) return 'donahelena';
+    if (/HONOR[AÁ]RIO|LEVMED|GRAU\s*PART|ATEND\.\s*:/.test(t)) return 'levmed';
+    return 'desconhecido';
+  }
+
+  // dd/mm/aaaa -> aaaa-mm-dd (valida)
+  function dataISO(s) {
+    const m = /(\d{2})\/(\d{2})\/(\d{4})/.exec(s || '');
+    if (!m) return '';
+    const d = +m[1], mo = +m[2], y = +m[3];
+    if (d < 1 || d > 31 || mo < 1 || mo > 12 || y < 2000 || y > 2100) return '';
+    return `${m[3]}-${m[2]}-${m[1]}`;
+  }
+
+  function limparNome(s) {
+    return (s || '').replace(new RegExp(`[^${LETRAS}\\s'.-]`, 'g'), ' ')
+      .replace(/\s+/g, ' ').trim()
+      .replace(/^[.\-' ]+|[.\-' ]+$/g, '');
+  }
+
+  const PALAVRAS_PROIBIDAS = /GUIA|HONOR|LEVMED|LTDA|HOSPITAL|CONTRATAD|DADOS|C[ÓO]DIGO|PROFISSIONAL|CONSELHO|BENEFICI|PROCEDIMENTO|OBSERVA|ASSINATURA|IMPRESSO|P[ÁA]GINA|REGISTRO|CARTEIRA|NOME|PLANO|VALIDADE|EMISS|SENHA|CONTA|TABELA|DESCRI|VISITA|CONSULTA|INTERNADO|REGRA|COBRAN|DIRETOR|MUNIC|ENDERE|MAXILO|EXAMES|ATENDIMENTO|IDENTIDADE|TELEFONE|ENTRADA|CART[ÃA]O|NACIONAL|SA[ÚU]DE|OPERADORA|EXECUTANTE|SOLICITA/i;
+  // Procura um nome de pessoa no começo da linha (ex.: "Gean Carlos Borges de Oliveira [lixo]")
+  function nomeNaLinha(linha, ignorar) {
+    const re = new RegExp(`^\\W*([A-ZÀ-Ö][a-zà-ÿ]{1,}(?:\\s+(?:(?:de|da|do|dos|das|e|De|Da|Do|Dos|Das)\\s+)?[A-ZÀ-Ö][a-zà-ÿ]{1,}){1,6})`);
+    const m = re.exec(linha.trim());
+    if (!m) return '';
+    const nome = m[1].trim();
+    if (nome.length < 8 || PALAVRAS_PROIBIDAS.test(nome)) return '';
+    const low = nome.toLowerCase();
+    // ignora o nome do profissional, mesmo com erros de leitura (compara o início de cada palavra)
+    const pal = low.split(/\s+/).filter(w => w.length > 2);
+    for (const ig of ignorar) {
+      const partes = ig.toLowerCase().split(/\s+/).filter(p => p.length > 3);
+      const iguais = partes.filter(p => pal.some(w => w.slice(0, 2) === p.slice(0, 2) && w[w.length - 1] === p[p.length - 1])).length;
+      if (partes.some(p => low.includes(p.slice(0, 5))) || iguais >= 2) return '';
+    }
+    return nome;
+  }
+
+  function limparDescricao(s) {
+    let d = (s || '').trim();
+    const fecha = d.indexOf(')');
+    if (d.includes('(') && fecha > 0) d = d.slice(0, fecha + 1);
+    else {
+      // corta quando começa "lixo" (palavras curtas em maiúsculas, símbolos)
+      const out = [];
+      for (const w of d.split(/\s+/)) {
+        if (!new RegExp(`^[${LETRAS}()/,.-]+$`).test(w)) break;
+        if (out.length >= 2 && /^[A-Z]{1,3}$/.test(w)) break;
+        out.push(w);
+        if (out.length >= 10) break;
+      }
+      d = out.join(' ');
+    }
+    d = d.replace(/^Vista\b/i, 'Visita').replace(/Intemado|Interado|Intermado/i, 'Internado');
+    return d.replace(/\s+/g, ' ').trim();
+  }
+
+  function levmed(textos, cfg) {
+    const tudo = textos.join('\n');
+    const linhas = tudo.split('\n').map(l => l.trim()).filter(Boolean);
+    const r = { modelo: 'Levmed', paciente: '', atendimento: '', grau: '', procedimentos: [] };
+
+    for (const m of tudo.matchAll(/At[e3]n?d[^\d\n]{0,6}([\d.\s]{6,16})/gi)) {
+      const d = soDigitos(m[1]);
+      if (d.length >= 7 && d.length <= 10) { r.atendimento = d; break; }
+    }
+
+    // Nome do paciente: primeira linha "com cara de nome" (de preferência após o rótulo Nome/Beneficiário)
+    let ini = linhas.findIndex(l => /benefici|\bnome\b|n[úu]mero/i.test(l));
+    if (ini < 0) ini = 0;
+    const cand = [...linhas.slice(ini), ...linhas.slice(0, ini)];
+    for (const l of cand) { const n = nomeNaLinha(l, cfg.ignorarNomes || []); if (n) { r.paciente = limparNome(n); break; } }
+
+    const g = /Grau\s*Part[^\n]*\n\s*([0-3])\b/i.exec(tudo) || /Grau\s*Part\.?\s*:?\s*([0-3])\b/i.exec(tudo);
+    if (g) r.grau = g[1];
+
+    // Linhas de procedimento: "1 13/10/2026 13:27:07 13:27:07 22 10102019 Visita Hospitalar (...)"
+    const vistos = new Set();
+    const reLinha = /(\d{2}\/\d{2}\/\d{4})\s+(?:[\d:.]{4,8}\s+){0,2}(?:\d{2}\s+)?(\d{8})\b\s*(.*)$/;
+    for (const l of linhas) {
+      if (/impresso/i.test(l)) continue;
+      const m = reLinha.exec(l);
+      if (!m) continue;
+      const data = dataISO(m[1]);
+      if (r.atendimento && [...m[2]].filter((d, i) => d !== r.atendimento[i]).length <= 2) continue;
+      const key = m[2] + data;
+      if (!data || vistos.has(key)) continue;
+      vistos.add(key);
+      r.procedimentos.push({ data, codigo: m[2], procedimento: limparDescricao(m[3]) });
+    }
+    if (!r.procedimentos.length) {
+      // plano B: datas com horário + códigos de 8 dígitos soltos
+      const datas = [];
+      for (const l of linhas) {
+        if (/impresso|validade|emiss/i.test(l)) continue;
+        const m = /(\d{2}\/\d{2}\/\d{4})\s+\d{1,2}[:.]\d{2}/.exec(l);
+        if (m && dataISO(m[1])) datas.push(dataISO(m[1]));
+      }
+      const codigos = [];
+      for (const m of tudo.matchAll(/(?<![\d.\/])(\d{8})(?![\d.\/])/g)) {
+        if (!codigos.includes(m[1]) && !(r.atendimento && [...m[1]].filter((d, i) => d !== r.atendimento[i]).length <= 2)) codigos.push(m[1]);
+      }
+      const descs = linhas.map(l => { const m = /\b\d{8}\b\s+(.+)$/.exec(l); return m ? m[1] : l; }).filter(l => /visita|consulta|tratamento|cirurg|exodontia|redu[cç][aã]o|osteot|bi[oó]psia|drenagem|exerese|remo[cç][aã]o|fratura|curativo|sutura/i.test(l) && !/regra|cobran/i.test(l));
+      const n = Math.max(codigos.length, datas.length ? 1 : 0);
+      for (let i = 0; i < n; i++) {
+        r.procedimentos.push({
+          data: datas[i] || datas[0] || '',
+          codigo: codigos[i] || '',
+          procedimento: limparDescricao(descs[i] || ''),
+        });
+      }
+    }
+    return r;
+  }
+
+  function donaHelena(textos) {
+    const tudo = textos.join('\n');
+    const linhas = tudo.split('\n').map(l => l.trim()).filter(Boolean);
+    const r = { modelo: 'Dona Helena', paciente: '', atendimento: '', grau: '', procedimentos: [] };
+
+    const nm = /\bNome\s*[:\-—]?\s*(.+?)(?:\s+Atendimento|$)/im.exec(tudo);
+    if (nm) r.paciente = limparNome(nm[1]);
+    const at = /Atendimento\D{0,6}([\d.]{6,14})/i.exec(tudo);
+    if (at) r.atendimento = soDigitos(at[1]);
+
+    // Data: linha do registro (começa com a data, ex.: "23/10/2026 Tiago ...")
+    let data = '';
+    for (const l of linhas) {
+      if (/nasc|entrada|impresso|identidade/i.test(l)) continue;
+      const m = /(?:^|\s)(\d{2}\/\d{2}\/\d{4})(?!\s+\d{1,2}:\d{2}:\d{2})/.exec(l);
+      if (m && dataISO(m[1]) && /registro|profissional|[A-Z][a-z]+\s+[A-Z][a-z]+|^\W*\d{2}\//.test(l)) { data = dataISO(m[1]); break; }
+    }
+    if (!data) {
+      const e = /Entrada\D{0,6}(\d{2}\/\d{2}\/\d{4})/i.exec(tudo);
+      if (e) data = dataISO(e[1]);
+    }
+    const obs = (linhas.find(l => /consulta|parecer|visita|cirurg|procedimento\s+\w/i.test(l) && !/HDH|Exames/i.test(l)) || '').replace(/[|=]+/g, '').trim();
+    r.procedimentos.push({ data, codigo: '', procedimento: '', obs });
+    return r;
+  }
+
+  function extrair(textos, cfg) {
+    const modelo = detectarModelo(textos.join('\n'));
+    if (modelo === 'donahelena') return donaHelena(textos, cfg);
+    if (modelo === 'levmed') return levmed(textos, cfg);
+    const r = levmed(textos, cfg); r.modelo = 'Não identificado';
+    return r;
+  }
+
+  // ---- Texto colado do Adapta: PACIENTE | ATENDIMENTO | GRAU | CÓDIGO | PROCEDIMENTO | DATA
+  function adapta(texto) {
+    const out = [];
+    for (let l of (texto || '').split(/\r?\n/)) {
+      l = l.trim().replace(/^[-*•]\s*/, '');
+      if (!l || /^```/.test(l)) continue;
+      let p = l.split(/\s*[|;\t]\s*/);
+      if (p[0] === '') p.shift();
+      if (p[p.length - 1] === '') p.pop();
+      if (p.length < 6) continue;
+      if (/paciente/i.test(p[0]) && /atend/i.test(p[1])) continue; // cabeçalho
+      if (/^[-:\s]+$/.test(p[0])) continue; // separador de tabela markdown
+      const [paciente, atendimento, grau, codigo, procedimento, data] = p;
+      out.push({
+        paciente: limparNome(paciente.replace(/\?/g, '')),
+        atendimento: soDigitos(atendimento),
+        grau: /^[0-3]$/.test(soDigitos(grau)) ? soDigitos(grau) : '',
+        codigo: soDigitos(codigo).length === 8 ? soDigitos(codigo) : soDigitos(codigo),
+        procedimento: procedimento.replace(/^\?$/, '').trim(),
+        data: dataISO(data),
+      });
+    }
+    return out;
+  }
+
+  return { extrair, adapta, detectarModelo, dataISO, limparDescricao };
+})();
+if (typeof module !== 'undefined') module.exports = Parser;
+
+</script>
+<script>
+'use strict';
+const VERSAO = '1.0.0';
+const EXPERT_TXT = "Você é um assistente que transcreve guias de honorário médico-odontológicas para uma tabela. Eu vou enviar uma ou mais FOTOS (ou PDFs) de guias. Para cada foto, leia com atenção e devolva os dados no formato abaixo.\n\nFORMATO DE RESPOSTA (obrigatório):\n- Responda SOMENTE com um bloco de código, sem nenhum texto antes ou depois.\n- Uma linha por PROCEDIMENTO (se a guia tiver 3 procedimentos, são 3 linhas, repetindo paciente e atendimento).\n- Campos separados por \" | \" exatamente nesta ordem:\nPACIENTE | ATENDIMENTO | GRAU | CÓDIGO | PROCEDIMENTO | DATA\n\nExemplo:\n```\nMaria da Silva Souza | 10476625 | 0 | 10102019 | Visita hospitalar (paciente internado) | 13/10/2026\n```\n\nEXISTEM DOIS MODELOS DE FOLHA:\n\n1) \"GUIA DE HONORÁRIO INDIVIDUAL\" (Levmed). A foto pode estar deitada; leia mesmo assim.\n- PACIENTE: campo \"8 - Nome\" (dados do beneficiário). NÃO use o nome do profissional executante (campos 14 e 18).\n- ATENDIMENTO: número no canto superior direito, ao lado de \"Atend.:\". Só os dígitos, sem pontos.\n- GRAU: campo \"17 - Grau Part.\" (0 = cirurgião principal, 1 = primeiro auxiliar, 2 = segundo auxiliar). Se estiver em branco, use 0.\n- CÓDIGO: campo \"27 - Código do Procedimento\" (8 dígitos) de cada linha da tabela \"Procedimentos Realizados\".\n- PROCEDIMENTO: campo \"28 - Descrição\" da mesma linha.\n- DATA: campo \"23 - Data\" da mesma linha, no formato dd/mm/aaaa. Não use a data de \"Impresso em\" nem a validade da carteira.\n\n2) \"HDH - Procedimentos/Exames\" (Hospital Dona Helena).\n- PACIENTE: campo \"Nome\".\n- ATENDIMENTO: campo \"Atendimento\". Só os dígitos, sem pontos (ex.: 10.496.400 vira 10496400).\n- GRAU: essa folha não tem grau; use 0.\n- CÓDIGO e PROCEDIMENTO: estão ESCRITOS À MÃO pelo profissional na parte de baixo da folha. Transcreva o código (8 dígitos) e o nome do procedimento escritos à mão. Abreviações comuns: \"EME\" ou \"EMG\" = emergência.\n- DATA: a data da linha \"Registro / Profissional\" (ex.: 23/10/2026). Se não houver, use a \"Data Entrada\".\n\nREGRAS:\n- Nunca invente dados. Se não conseguir ler um campo com segurança, escreva ? no lugar dele.\n- Não inclua endereço, telefone, data de nascimento ou outros dados do paciente: só os 6 campos pedidos.\n- Se eu enviar várias fotos, junte todas as linhas no mesmo bloco de código.\n";
+const GRAUS = { '0': 'Principal', '1': '1º auxiliar', '2': '2º auxiliar', '3': '3º auxiliar' };
+const CDN = {
+  tjs: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js',
+  worker: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',
+  core: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1',
+  por: 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/por@1.0.0/4.0.0_best_int',
+  osd: 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/osd@1.0.0/4.0.0',
+  pdf: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+  pdfw: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  xlsx: 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+};
+const ARQ_GH = 'honorarios-dados.json';
+
+// ---------- utilidades ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const agora = () => new Date().toISOString();
+const br = iso => iso ? iso.split('-').reverse().join('/') : '';
+const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const nomeMes = ym => { const [y, m] = ym.split('-'); return `${MESES[+m - 1]} ${y}`; };
+function toast(msg, ms = 2600) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), ms); }
+const carregados = {};
+function carregarScript(src) {
+  if (!carregados[src]) carregados[src] = new Promise((ok, erro) => {
+    const s = document.createElement('script'); s.src = src; s.onload = ok;
+    s.onerror = () => { delete carregados[src]; erro(new Error('Sem internet para baixar o componente.')); };
+    document.head.appendChild(s);
+  });
+  return carregados[src];
+}
+
+// ---------- armazenamento local (IndexedDB + cópia no localStorage) ----------
+const Local = {
+  db: null,
+  async abrir() {
+    if (this.db) return this.db;
+    this.db = await new Promise((ok, erro) => {
+      const r = indexedDB.open('honorarios', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => ok(r.result); r.onerror = () => erro(r.error);
+    });
+    return this.db;
+  },
+  async get(k) {
+    try {
+      const db = await this.abrir();
+      const v = await new Promise((ok, erro) => { const r = db.transaction('kv').objectStore('kv').get(k); r.onsuccess = () => ok(r.result); r.onerror = () => erro(r.error); });
+      if (v !== undefined) return v;
+    } catch (e) { }
+    try { const s = localStorage.getItem('hon_' + k); return s ? JSON.parse(s) : undefined; } catch (e) { return undefined; }
+  },
+  async set(k, v) {
+    try { localStorage.setItem('hon_' + k, JSON.stringify(v)); } catch (e) { }
+    try {
+      const db = await this.abrir();
+      await new Promise((ok, erro) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = ok; t.onerror = () => erro(t.error); });
+    } catch (e) { }
+  },
+};
+
+// ---------- estado ----------
+let S = { rows: [], codigos: {}, cfg: { grauPadrao: '0', nomeProf: 'Tiago Stangarlin Forgiarini', atualizadoEm: '' } };
+let GH = { owner: '', repo: '', token: '', ultimo: '', erro: '' };
+const vivos = () => S.rows.filter(r => !r.removido);
+
+async function salvarLocal() { await Local.set('estado', S); agendarSync(); }
+
+function aprender(codigo, proc) {
+  codigo = (codigo || '').replace(/\D/g, ''); proc = (proc || '').trim();
+  if (codigo.length < 6 || !proc) return;
+  const atual = S.codigos[codigo];
+  if (atual && !atual.removido && atual.desc === proc) return;
+  S.codigos[codigo] = { desc: proc, atualizadoEm: agora() };
+}
+function descDoCodigo(c) { const x = S.codigos[(c || '').replace(/\D/g, '')]; return x && !x.removido ? x.desc : ''; }
+function codigoDaDesc(d) {
+  d = (d || '').trim().toLowerCase(); if (!d) return '';
+  for (const [c, x] of Object.entries(S.codigos)) if (!x.removido && x.desc.toLowerCase() === d) return c;
+  return '';
+}
+function atualizarDatalists() {
+  const cs = Object.entries(S.codigos).filter(([, x]) => !x.removido);
+  $('#dlCodigos').innerHTML = cs.map(([c, x]) => `<option value="${esc(c)}">${esc(x.desc)}</option>`).join('');
+  $('#dlProcs').innerHTML = cs.map(([, x]) => `<option value="${esc(x.desc)}"></option>`).join('');
+}
+
+// ---------- backup no GitHub (repositório privado) ----------
+const b64enc = str => { const b = new TextEncoder().encode(str); let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); };
+const b64dec = b64 => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\s/g, '')), c => c.charCodeAt(0)));
+const ghOk = () => GH.owner && GH.repo && GH.token;
+async function ghFetch(path, opt = {}) {
+  const r = await fetch(`https://api.github.com/repos/${encodeURIComponent(GH.owner)}/${encodeURIComponent(GH.repo)}${path}`, {
+    ...opt, cache: 'no-store',
+    headers: { Authorization: `Bearer ${GH.token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(opt.headers || {}) },
+  });
+  return r;
+}
+function erroGH(r) {
+  if (r.status === 401) return 'Token inválido ou vencido. Gere um novo token.';
+  if (r.status === 403) return 'O token não tem permissão de escrita (Contents: Read and write).';
+  if (r.status === 404) return 'Repositório não encontrado. Confira o usuário, o nome e se o token tem acesso a ele.';
+  return 'Erro do GitHub (' + r.status + ').';
+}
+async function ghLer() {
+  const r = await ghFetch(`/contents/${ARQ_GH}`);
+  if (r.status === 404) {
+    const repo = await ghFetch('');
+    if (!repo.ok) throw new Error(erroGH(repo));
+    return { dados: null, sha: null };
+  }
+  if (!r.ok) throw new Error(erroGH(r));
+  const j = await r.json();
+  let txt = j.content ? b64dec(j.content) : '';
+  if (!txt && j.size > 0) {
+    const raw = await ghFetch(`/contents/${ARQ_GH}`, { headers: { Accept: 'application/vnd.github.raw+json' } });
+    txt = await raw.text();
+  }
+  return { dados: txt ? JSON.parse(txt) : null, sha: j.sha };
+}
+async function ghGravar(dados, sha) {
+  const corpo = { message: 'Atualiza honorários ' + new Date().toLocaleString('pt-BR'), content: b64enc(JSON.stringify(dados, null, 1)) };
+  if (sha) corpo.sha = sha;
+  const r = await ghFetch(`/contents/${ARQ_GH}`, { method: 'PUT', body: JSON.stringify(corpo) });
+  if (r.status === 409 || r.status === 422) return false;
+  if (!r.ok) throw new Error(erroGH(r));
+  return true;
+}
+function mesclar(loc, rem) {
+  if (!rem) return loc;
+  const porId = new Map();
+  for (const r of [...(rem.rows || []), ...loc.rows]) {
+    const a = porId.get(r.id);
+    if (!a || (r.atualizadoEm || '') > (a.atualizadoEm || '')) porId.set(r.id, r);
+  }
+  const cods = { ...(rem.codigos || {}) };
+  for (const [c, x] of Object.entries(loc.codigos)) if (!cods[c] || (x.atualizadoEm || '') > (cods[c].atualizadoEm || '')) cods[c] = x;
+  const cfg = (rem.cfg && (rem.cfg.atualizadoEm || '') > (loc.cfg.atualizadoEm || '')) ? { ...loc.cfg, ...rem.cfg } : loc.cfg;
+  return { rows: [...porId.values()], codigos: cods, cfg };
+}
+const assinatura = d => JSON.stringify([d.rows.map(r => r.id + r.atualizadoEm).sort(), Object.entries(d.codigos || {}).map(([c, x]) => c + x.atualizadoEm).sort(), d.cfg && d.cfg.atualizadoEm]);
+let syncTimer = null, sincronizando = false, syncDeNovo = false;
+function agendarSync(ms = 2500) { if (!ghOk()) { pill(); return; } clearTimeout(syncTimer); syncTimer = setTimeout(sincronizar, ms); pill('busy', 'Salvando…'); }
+async function sincronizar() {
+  if (!ghOk()) { pill(); return; }
+  if (sincronizando) { syncDeNovo = true; return; }
+  sincronizando = true; pill('busy', 'Sincronizando…');
+  try {
+    for (let tent = 0; tent < 3; tent++) {
+      const { dados, sha } = await ghLer();
+      const antes = assinatura(S);
+      const m = mesclar(S, dados);
+      if (assinatura(m) !== antes) { S = m; await Local.set('estado', S); render(); }
+      if (dados && assinatura(dados) === assinatura(S)) break;
+      if (await ghGravar({ app: 'honorarios', versao: 1, salvoEm: agora(), ...S }, sha)) break;
+    }
+    GH.ultimo = agora(); GH.erro = ''; await Local.set('gh', GH);
+    pill('ok', 'Backup ok');
+  } catch (e) {
+    GH.erro = e.message || String(e); await Local.set('gh', GH);
+    pill('err', navigator.onLine ? 'Erro no backup' : 'Sem internet');
+  } finally {
+    sincronizando = false; renderGhStatus();
+    if (syncDeNovo) { syncDeNovo = false; agendarSync(500); }
+  }
+}
+function pill(cls, txt) {
+  const p = $('#syncPill');
+  if (!cls) { cls = ghOk() ? (GH.erro ? 'err' : 'ok') : 'off'; txt = ghOk() ? (GH.erro ? 'Erro no backup' : 'Backup ok') : 'Sem backup'; }
+  p.className = cls; p.querySelector('span').textContent = txt;
+}
+function renderGhStatus() {
+  const el = $('#ghStatus');
+  if (!ghOk()) { el.className = 'note warn'; el.style.marginTop = 0; el.textContent = 'Backup ainda não configurado. Sem ele, se o iPhone apagar os dados do navegador, a tabela é perdida.'; return; }
+  if (GH.erro) { el.className = 'note bad'; el.textContent = GH.erro; return; }
+  el.className = 'note ok';
+  el.textContent = 'Backup ativo no repositório ' + GH.owner + '/' + GH.repo + (GH.ultimo ? ' · última cópia ' + new Date(GH.ultimo).toLocaleString('pt-BR') : '');
+}
+
+// ---------- leitura das fotos (OCR no próprio aparelho) ----------
+const OCR = {
+  wPor: null, wOsd: null,
+  async preparar(status) {
+    if (this.wPor) return;
+    status('Baixando o leitor de texto…', 3);
+    await carregarScript(CDN.tjs);
+    const base = { workerPath: CDN.worker, corePath: CDN.core, workerBlobURL: true };
+    status('Preparando o leitor (português)…', 8);
+    this.wPor = await Tesseract.createWorker('por', 1, { ...base, langPath: CDN.por });
+    status('Preparando o detector de posição…', 14);
+    try { this.wOsd = await Tesseract.createWorker('osd', 0, { ...base, langPath: CDN.osd, legacyCore: true, legacyLang: true }); }
+    catch (e) { this.wOsd = null; }
+  },
+  async texto(canvas, psm) {
+    await this.wPor.setParameters({ tessedit_pageseg_mode: String(psm) });
+    const r = await this.wPor.recognize(canvas);
+    return r.data.text || '';
+  },
+  async orientacao(canvas) {
+    if (!this.wOsd) return null;
+    try { const r = await this.wOsd.detect(canvas); return r.data; } catch (e) { return null; }
+  },
+};
+
+function carregarImagem(blob) {
+  return new Promise((ok, erro) => {
+    const url = URL.createObjectURL(blob); const img = new Image();
+    img.onload = () => ok({ img, url }); img.onerror = () => erro(new Error('Não consegui abrir a imagem.'));
+    img.src = url;
+  });
+}
+function canvasDe(fonte, w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(fonte, 0, 0, w, h); return c; }
+function cinzaContraste(src) {
+  const c = canvasDe(src, src.width, src.height), x = c.getContext('2d');
+  const d = x.getImageData(0, 0, c.width, c.height), p = d.data, n = p.length / 4;
+  const g = new Uint8ClampedArray(n), hist = new Uint32Array(256);
+  for (let i = 0; i < n; i++) { const v = (p[i * 4] * 299 + p[i * 4 + 1] * 587 + p[i * 4 + 2] * 114) / 1000 | 0; g[i] = v; hist[v]++; }
+  let lo = 0, hi = 255, acc = 0; const corte = n * 0.01;
+  for (; lo < 255; lo++) { acc += hist[lo]; if (acc > corte) break; }
+  acc = 0; for (; hi > 0; hi--) { acc += hist[hi]; if (acc > corte) break; }
+  const esc_ = 255 / Math.max(1, hi - lo);
+  for (let i = 0; i < n; i++) { const v = Math.max(0, Math.min(255, (g[i] - lo) * esc_)); g[i] = v; p[i * 4] = p[i * 4 + 1] = p[i * 4 + 2] = v; }
+  x.putImageData(d, 0, 0);
+  return { canvas: c, gray: g };
+}
+function binarizar(gray, w, h, raio = 25, C = 12) {
+  const W = w + 1, I = new Float64Array(W * (h + 1));
+  for (let y = 0; y < h; y++) { let s = 0; for (let x = 0; x < w; x++) { s += gray[y * w + x]; I[(y + 1) * W + x + 1] = I[y * W + x + 1] + s; } }
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x2 = c.getContext('2d'), d = x2.createImageData(w, h), p = d.data;
+  for (let y = 0; y < h; y++) {
+    const y0 = Math.max(0, y - raio), y1 = Math.min(h, y + raio + 1);
+    for (let x = 0; x < w; x++) {
+      const x0 = Math.max(0, x - raio), x1 = Math.min(w, x + raio + 1);
+      const soma = I[y1 * W + x1] - I[y0 * W + x1] - I[y1 * W + x0] + I[y0 * W + x0];
+      const v = gray[y * w + x] < soma / ((x1 - x0) * (y1 - y0)) - C ? 0 : 255;
+      const k = (y * w + x) * 4; p[k] = p[k + 1] = p[k + 2] = v; p[k + 3] = 255;
+    }
+  }
+  x2.putImageData(d, 0, 0); return c;
+}
+function girar(src, graus) {
+  if (!graus) return src;
+  const c = document.createElement('canvas'), q = graus % 180 !== 0;
+  c.width = q ? src.height : src.width; c.height = q ? src.width : src.height;
+  const x = c.getContext('2d'); x.translate(c.width / 2, c.height / 2); x.rotate(graus * Math.PI / 180);
+  x.drawImage(src, -src.width / 2, -src.height / 2); return c;
+}
+function recorte(src, x0, y0, x1, y1, esc_ = 2) {
+  const sx = Math.round(src.width * x0), sy = Math.round(src.height * y0), w = Math.round(src.width * (x1 - x0)), h = Math.round(src.height * (y1 - y0));
+  const c = document.createElement('canvas'); c.width = w * esc_; c.height = h * esc_;
+  const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(src, sx, sy, w, h, 0, 0, c.width, c.height); return c;
+}
+function miniatura(canvas, lado = 700) { const s = Math.min(1, lado / Math.max(canvas.width, canvas.height)); return canvasDe(canvas, Math.round(canvas.width * s), Math.round(canvas.height * s)).toDataURL('image/jpeg', .8); }
+
+async function paginasDoArquivo(arq) {
+  if (arq.type === 'application/pdf' || /\.pdf$/i.test(arq.name)) {
+    await carregarScript(CDN.pdf);
+    pdfjsLib.GlobalWorkerOptions.workerSrc = CDN.pdfw;
+    const pdf = await pdfjsLib.getDocument({ data: await arq.arrayBuffer() }).promise;
+    const out = [];
+    for (let i = 1; i <= Math.min(pdf.numPages, 20); i++) {
+      const pg = await pdf.getPage(i); const v1 = pg.getViewport({ scale: 1 });
+      const vp = pg.getViewport({ scale: 2400 / Math.max(v1.width, v1.height) });
+      const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height;
+      await pg.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      out.push({ canvas: c, nome: `${arq.name} (pág. ${i})` });
+    }
+    return out;
+  }
+  const { img, url } = await carregarImagem(arq);
+  const s = Math.min(2.5, 2400 / Math.max(img.naturalWidth, img.naturalHeight));
+  const c = canvasDe(img, Math.round(img.naturalWidth * s), Math.round(img.naturalHeight * s));
+  URL.revokeObjectURL(url);
+  return [{ canvas: c, nome: arq.name }];
+}
+
+async function lerPagina(canvas, passo) {
+  const { canvas: G, gray } = cinzaContraste(canvas);
+  let B = binarizar(gray, G.width, G.height);
+  // 1) posição da folha
+  passo('Descobrindo a posição da folha…');
+  let rot = 0;
+  const o = await OCR.orientacao(B);
+  if (o && o.orientation_degrees) {
+    const cand = (360 - o.orientation_degrees) % 360;
+    const o2 = await OCR.orientacao(girar(B, cand));
+    if (!o2 || o2.orientation_degrees === 0 || o2.orientation_degrees == null) rot = cand;
+  } else if (!o) {
+    // detector não decidiu: testa as 4 posições e fica com a de maior confiança
+    let melhor = -1;
+    for (const r of [90, 270, 180]) {
+      const t = await OCR.orientacao(girar(B, r));
+      if (t && t.orientation_degrees === 0 && t.orientation_confidence > melhor) { melhor = t.orientation_confidence; rot = r; }
+    }
+  }
+  let Gr = girar(G, rot), Br = girar(B, rot);
+  // 2) leitura
+  passo('Lendo o texto…');
+  const textos = [await OCR.texto(Gr, 3)];
+  let modelo = Parser.detectarModelo(textos[0]);
+  if (modelo === 'desconhecido') {
+    // não reconheceu a folha: tenta as outras posições
+    passo('Ajustando a posição da folha…');
+    for (const r of [90, 270, 180].map(x => (rot + x) % 360)) {
+      const t = await OCR.texto(girar(G, r), 3);
+      if (Parser.detectarModelo(t) !== 'desconhecido') { rot = r; Gr = girar(G, r); Br = girar(B, r); textos[0] = t; modelo = Parser.detectarModelo(t); break; }
+    }
+  }
+  if (modelo !== 'donahelena') {
+    passo('Lendo os campos da guia…');
+    textos.push(await OCR.texto(Br, 3));
+    textos.push(await OCR.texto(Gr, 6));
+    // leituras de perto das áreas do atendimento, do nome e do grau (letras pequenas)
+    passo('Conferindo nome, atendimento e grau…');
+    const lands = Gr.width >= Gr.height;
+    if (lands) {
+      textos.push(await OCR.texto(recorte(Gr, .5, 0, 1, .15), 6));
+      textos.push(await OCR.texto(recorte(Gr, 0, .1, .62, .28), 6));
+      textos.push(await OCR.texto(recorte(Gr, 0, .3, .3, .47), 6));
+    }
+  }
+  return { textos, rot, imagem: miniatura(Gr, 1600), thumb: miniatura(Gr, 240) };
+}
+
+// ---------- fluxo "Adicionar" ----------
+let revisao = []; // [{id, modelo, paciente, atendimento, grau, imagem, thumb, procs:[{data,codigo,procedimento,obs}]}]
+function telaAdd(qual) {
+  for (const id of ['addInicio', 'addColar', 'addProc', 'addRev']) $('#' + id).classList.toggle('hidden', id !== qual);
+  window.scrollTo(0, 0);
+}
+async function processarArquivos(lista) {
+  telaAdd('addProc');
+  const msg = (t, pct) => { $('#procMsg').textContent = t; if (pct != null) $('#procBar').style.width = pct + '%'; };
+  try {
+    pedirPersistencia();
+    await OCR.preparar(msg);
+    $('#procSub').textContent = 'Pode levar uns 20 segundos por foto. Não feche o app.';
+    const paginas = [];
+    for (const a of lista) { try { paginas.push(...await paginasDoArquivo(a)); } catch (e) { toast('Não consegui abrir ' + a.name); } }
+    revisao = [];
+    for (let i = 0; i < paginas.length; i++) {
+      const base = 15 + (i / paginas.length) * 85;
+      const passo = t => msg(`Guia ${i + 1} de ${paginas.length}: ${t}`, base + 85 / paginas.length * .3);
+      let res;
+      try { res = await lerPagina(paginas[i].canvas, passo); }
+      catch (e) { res = { textos: [''], imagem: miniatura(paginas[i].canvas, 1600), thumb: miniatura(paginas[i].canvas, 240) }; }
+      const ex = Parser.extrair(res.textos, { ignorarNomes: [S.cfg.nomeProf].filter(Boolean) });
+      revisao.push(novaGuiaRev(ex, res));
+      msg(`Guia ${i + 1} de ${paginas.length} lida`, 15 + ((i + 1) / paginas.length) * 85);
+    }
+    if (!revisao.length) { toast('Nenhuma imagem para ler.'); telaAdd('addInicio'); return; }
+    abrirRevisao();
+  } catch (e) {
+    toast(e.message || 'Erro na leitura', 4000); telaAdd('addInicio');
+  }
+}
+function novaGuiaRev(ex, img) {
+  const procs = (ex.procedimentos && ex.procedimentos.length ? ex.procedimentos : [{ data: '', codigo: '', procedimento: '' }]).map(p => {
+    let codigo = p.codigo || '', procedimento = p.procedimento || '', obs = p.obs || '';
+    if (codigo && !descDoCodigo(codigo)) {
+      const perto = Object.keys(S.codigos).filter(c => !S.codigos[c].removido && c.length === codigo.length && [...c].filter((d, i) => d !== codigo[i]).length === 1);
+      if (perto.length === 1) { obs = `O leitor viu ${codigo}; ajustei para ${perto[0]}, que você já usou. Confira na foto.`; codigo = perto[0]; }
+    }
+    const aprendida = descDoCodigo(codigo);
+    if (aprendida) procedimento = aprendida;
+    if (!codigo && procedimento) codigo = codigoDaDesc(procedimento);
+    return { data: p.data || '', codigo, procedimento, obs };
+  });
+  return { id: uid(), textos: img && img.textos, modelo: ex.modelo || '', paciente: ex.paciente || '', atendimento: ex.atendimento || '', grau: ex.grau || S.cfg.grauPadrao || '0', imagem: img && img.imagem, thumb: img && img.thumb, procs };
+}
+function duplicada(g, p) {
+  return vivos().find(r => r.atendimento && r.atendimento === g.atendimento && r.codigo === p.codigo && r.data === p.data);
+}
+function abrirRevisao() { telaAdd('addRev'); renderRevisao(); }
+function renderRevisao() {
+  $('#revLista').innerHTML = revisao.map((g, gi) => {
+    const faltaG = !g.paciente || !g.atendimento;
+    const procs = g.procs.map((p, pi) => {
+      const dup = duplicada(g, p);
+      const falta = !p.data || !p.codigo || !p.procedimento;
+      return `<div class="proc-item">
+        <div class="grid2">
+          <div><label class="f">Data</label><input class="i ${p.data ? '' : 'miss'}" type="date" value="${esc(p.data)}" data-g="${gi}" data-p="${pi}" data-k="data"></div>
+          <div><label class="f">Código</label><input class="i ${p.codigo ? '' : 'miss'}" inputmode="numeric" list="dlCodigos" value="${esc(p.codigo)}" data-g="${gi}" data-p="${pi}" data-k="codigo" placeholder="8 dígitos"></div>
+        </div>
+        <label class="f">Procedimento</label><input class="i ${p.procedimento ? '' : 'miss'}" list="dlProcs" value="${esc(p.procedimento)}" data-g="${gi}" data-p="${pi}" data-k="procedimento" placeholder="Nome do procedimento">
+        ${p.obs ? (/ajustei/.test(p.obs) ? `<div class="note warn">${esc(p.obs)}</div>` : `<div class="note info">Texto impresso na folha: “${esc(p.obs)}”. O código e o procedimento escritos à mão estão na foto.</div>`) : ''}
+        ${dup ? `<div class="note warn">⚠️ Já existe na tabela (mesmo atendimento, código e data). Se salvar, fica repetido.</div>` : ''}
+        ${falta && !dup ? '' : ''}
+        ${g.procs.length > 1 ? `<button class="btn ghost" style="min-height:34px;padding:4px 10px;margin-top:8px;font-size:13px" data-delp="${gi}:${pi}">Remover este procedimento</button>` : ''}
+      </div>`;
+    }).join('');
+    const aviso = g.procs.some(p => duplicada(g, p)) || faltaG || g.procs.some(p => !p.data || !p.codigo || !p.procedimento);
+    return `<div class="card guia ${aviso ? 'warn' : ''}">
+      <div class="head">
+        ${g.thumb ? `<img class="th" src="${g.thumb}" data-ver="${gi}" alt="Foto da guia">` : ''}
+        <div style="flex:1;min-width:0">
+          <div class="small muted">${esc(g.modelo || 'Guia')} · ${g.procs.length} procedimento${g.procs.length > 1 ? 's' : ''}</div>
+          <label class="f" style="margin-top:4px">Paciente</label>
+          <input class="i ${g.paciente ? '' : 'miss'}" value="${esc(g.paciente)}" data-g="${gi}" data-k="paciente" autocapitalize="words">
+        </div>
+      </div>
+      <div class="grid2">
+        <div><label class="f">Nº atendimento</label><input class="i ${g.atendimento ? '' : 'miss'}" inputmode="numeric" value="${esc(g.atendimento)}" data-g="${gi}" data-k="atendimento"></div>
+        <div><label class="f">Grau</label><select class="i" data-g="${gi}" data-k="grau">${['0', '1', '2'].map(v => `<option value="${v}" ${g.grau === v ? 'selected' : ''}>${v} · ${GRAUS[v]}</option>`).join('')}</select></div>
+      </div>
+      ${procs}
+      <div class="row" style="margin-top:10px">
+        <button class="btn ghost" style="flex:1;min-height:38px;font-size:14px" data-addp="${gi}">+ Procedimento</button>
+        <button class="btn danger" style="flex:1;min-height:38px;font-size:14px" data-delg="${gi}">Descartar guia</button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty">Nenhuma guia para conferir.</div>';
+}
+$('#revLista').addEventListener('input', e => {
+  const t = e.target; if (!t.dataset.k) return;
+  const g = revisao[+t.dataset.g]; if (!g) return;
+  const k = t.dataset.k;
+  let v = t.value;
+  if (k === 'atendimento') v = v.replace(/\D/g, '');
+  if (t.dataset.p != null) {
+    const p = g.procs[+t.dataset.p]; p[k] = k === 'codigo' ? v.replace(/\D/g, '') : v;
+    if (k === 'codigo') { const d = descDoCodigo(p.codigo); if (d) { p.procedimento = d; const el = t.closest('.proc-item').querySelector('[data-k=procedimento]'); el.value = d; el.classList.remove('miss'); } }
+    if (k === 'procedimento' && !p.codigo) { const c = codigoDaDesc(v); if (c) { p.codigo = c; const el = t.closest('.proc-item').querySelector('[data-k=codigo]'); el.value = c; el.classList.remove('miss'); } }
+  } else g[k] = v;
+  t.classList.toggle('miss', !String(v).trim());
+});
+$('#revLista').addEventListener('click', e => {
+  const t = e.target.closest('[data-ver],[data-addp],[data-delg],[data-delp]'); if (!t) return;
+  if (t.dataset.ver != null) return verImagem(revisao[+t.dataset.ver].imagem);
+  if (t.dataset.addp != null) { const g = revisao[+t.dataset.addp]; const ult = g.procs[g.procs.length - 1]; g.procs.push({ data: ult ? ult.data : '', codigo: '', procedimento: '' }); }
+  if (t.dataset.delg != null) revisao.splice(+t.dataset.delg, 1);
+  if (t.dataset.delp != null) { const [a, b] = t.dataset.delp.split(':').map(Number); revisao[a].procs.splice(b, 1); }
+  renderRevisao();
+});
+$('#btSalvarRev').onclick = async () => {
+  let faltam = 0;
+  for (const g of revisao) for (const p of g.procs) if (!g.paciente || !g.atendimento || !p.data || !p.codigo || !p.procedimento) faltam++;
+  if (faltam && !$('#btSalvarRev').dataset.confirma) {
+    $('#btSalvarRev').dataset.confirma = '1'; $('#btSalvarRev').textContent = `Salvar mesmo com ${faltam} incompleto${faltam > 1 ? 's' : ''}?`;
+    toast('Há campos em branco. Toque de novo para salvar assim mesmo.'); return;
+  }
+  let n = 0;
+  for (const g of revisao) for (const p of g.procs) {
+    S.rows.push({ id: uid(), paciente: g.paciente.trim(), atendimento: g.atendimento, grau: g.grau, codigo: p.codigo, procedimento: p.procedimento.trim(), data: p.data, origem: g.modelo || '', criadoEm: agora(), atualizadoEm: agora() });
+    aprender(p.codigo, p.procedimento); n++;
+  }
+  revisao = []; resetBtnSalvar();
+  await salvarLocal(); atualizarDatalists(); render();
+  telaAdd('addInicio'); mostrar('v-lista'); toast(`${n} procedimento${n > 1 ? 's' : ''} salvo${n > 1 ? 's' : ''} ✓`);
+};
+function resetBtnSalvar() { const b = $('#btSalvarRev'); delete b.dataset.confirma; b.textContent = 'Salvar na tabela'; }
+$('#btCancelRev').onclick = () => { revisao = []; resetBtnSalvar(); telaAdd('addInicio'); };
+$('#btFotos').onclick = () => $('#arquivos').click();
+$('#arquivos').onchange = e => { const l = [...e.target.files]; e.target.value = ''; if (l.length) processarArquivos(l); };
+$('#btManual').onclick = () => { revisao = [novaGuiaRev({ modelo: 'Manual', procedimentos: [{ data: new Date().toISOString().slice(0, 10) }] })]; resetBtnSalvar(); abrirRevisao(); };
+$('#btColar').onclick = () => telaAdd('addColar');
+document.querySelectorAll('[data-voltar]').forEach(b => b.onclick = () => telaAdd('addInicio'));
+$('#btColarClip').onclick = async () => { try { $('#txtColar').value = await navigator.clipboard.readText(); } catch (e) { toast('Toque e segure na caixa de texto e escolha Colar.'); } };
+$('#btLerColado').onclick = () => {
+  const linhas = Parser.adapta($('#txtColar').value);
+  if (!linhas.length) { toast('Não encontrei linhas no formato do Expert. Confira se colou a resposta inteira.', 4000); return; }
+  // agrupa por paciente+atendimento
+  const grupos = new Map();
+  for (const l of linhas) {
+    const k = l.paciente + '|' + l.atendimento;
+    if (!grupos.has(k)) grupos.set(k, novaGuiaRev({ modelo: 'Adapta', paciente: l.paciente, atendimento: l.atendimento, grau: l.grau, procedimentos: [] }));
+    const g = grupos.get(k); if (l.grau) g.grau = l.grau;
+    const desc = descDoCodigo(l.codigo) || l.procedimento;
+    g.procs.push({ data: l.data, codigo: l.codigo, procedimento: desc });
+  }
+  revisao = [...grupos.values()].map(g => { g.procs = g.procs.filter(p => p.data || p.codigo || p.procedimento); if (!g.procs.length) g.procs.push({ data: '', codigo: '', procedimento: '' }); return g; });
+  $('#txtColar').value = ''; resetBtnSalvar(); abrirRevisao();
+};
+
+// ---------- visualizador de foto ----------
+function verImagem(src) { if (!src) return; $('#viewerImg').src = src; $('#viewer').classList.add('on'); $('#viewer').classList.remove('zoom'); }
+$('#viewerImg').onclick = () => $('#viewer').classList.toggle('zoom');
+$('#viewerX').onclick = () => $('#viewer').classList.remove('on');
+
+// ---------- tabela ----------
+let filtro = { busca: '', mes: '', grau: '' };
+function filtradas() {
+  const b = filtro.busca.trim().toLowerCase();
+  const bd = b.replace(/\D/g, '');
+  return vivos().filter(r =>
+    (!filtro.mes || (r.data || '').startsWith(filtro.mes)) &&
+    (filtro.grau === '' || r.grau === filtro.grau) &&
+    (!b || (r.paciente || '').toLowerCase().includes(b) || (r.procedimento || '').toLowerCase().includes(b) || (bd && ((r.codigo || '').includes(bd) || (r.atendimento || '').includes(bd))))
+  ).sort((a, b) => (b.data || '').localeCompare(a.data || '') || (a.paciente || '').localeCompare(b.paciente || ''));
+}
+function render() {
+  const meses = [...new Set(vivos().map(r => (r.data || '').slice(0, 7)).filter(Boolean))].sort().reverse();
+  if (filtro.mes && !meses.includes(filtro.mes)) filtro.mes = '';
+  $('#fMes').innerHTML = `<option value="">Todos os meses</option>` + meses.map(m => `<option value="${m}" ${m === filtro.mes ? 'selected' : ''}>${nomeMes(m)}</option>`).join('');
+  const lista = filtradas();
+  const cont = g => lista.filter(r => r.grau === g).length;
+  $('#stats').innerHTML = `<div class="stat"><b>${lista.length}</b><span>procedimentos</span></div><div class="stat"><b style="color:var(--g0)">${cont('0')}</b><span>principal</span></div><div class="stat"><b style="color:var(--g1)">${cont('1')}</b><span>1º auxiliar</span></div><div class="stat"><b style="color:var(--g2)">${cont('2')}</b><span>2º auxiliar</span></div>`;
+  if (!vivos().length) {
+    $('#tabela').innerHTML = `<div class="card empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg><p><b>Nenhuma guia ainda</b><br>Toque em <b>Adicionar</b> e escolha as fotos das guias.</p></div>`;
+    return;
+  }
+  if (!lista.length) { $('#tabela').innerHTML = `<div class="card empty">Nada encontrado com esses filtros.</div>`; return; }
+  let html = '', mesAtual = null;
+  for (const r of lista) {
+    const m = (r.data || '').slice(0, 7);
+    if (!filtro.mes && m !== mesAtual) { mesAtual = m; html += `<tr class="mes"><td colspan="6">${m ? nomeMes(m) : 'Sem data'}</td></tr>`; }
+    html += `<tr data-id="${r.id}"><td>${esc(br(r.data).slice(0, 6) + br(r.data).slice(8))}</td><td class="pac">${esc(r.paciente)}</td><td>${esc(r.atendimento)}</td><td><span class="badge g${esc(r.grau)}">${esc(r.grau)}</span></td><td>${esc(r.codigo)}</td><td class="proc">${esc(r.procedimento)}</td></tr>`;
+  }
+  $('#tabela').innerHTML = `<div class="dica">deslize a tabela para o lado →</div><div class="tablewrap"><table><thead><tr><th>Data</th><th>Paciente</th><th>Atend.</th><th>Grau</th><th>Código</th><th>Procedimento</th></tr></thead><tbody>${html}</tbody></table></div>`;
+}
+$('#busca').addEventListener('input', e => { filtro.busca = e.target.value; render(); });
+$('#fMes').addEventListener('change', e => { filtro.mes = e.target.value; render(); });
+$('#fGrau').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; filtro.grau = b.dataset.g; document.querySelectorAll('#fGrau .chip').forEach(c => c.classList.toggle('on', c === b)); render(); });
+$('#tabela').addEventListener('click', e => { const tr = e.target.closest('tr[data-id]'); if (tr) editar(tr.dataset.id); });
+
+// ---------- editar linha ----------
+function abrirModal(html) { $('#modalBody').innerHTML = html; $('#modal').classList.add('on'); }
+function fecharModal() { $('#modal').classList.remove('on'); }
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') fecharModal(); });
+function editar(id) {
+  const r = S.rows.find(x => x.id === id); if (!r) return;
+  abrirModal(`<h3>Editar procedimento</h3>
+    <label class="f">Paciente</label><input class="i" id="eP" value="${esc(r.paciente)}" autocapitalize="words">
+    <div class="grid2"><div><label class="f">Nº atendimento</label><input class="i" id="eA" inputmode="numeric" value="${esc(r.atendimento)}"></div>
+    <div><label class="f">Data</label><input class="i" id="eD" type="date" value="${esc(r.data)}"></div></div>
+    <label class="f">Grau de participação</label>
+    <select class="i" id="eG">${['0', '1', '2'].map(v => `<option value="${v}" ${r.grau === v ? 'selected' : ''}>${v} · ${GRAUS[v]}</option>`).join('')}</select>
+    <div class="grid2"><div><label class="f">Código</label><input class="i" id="eC" inputmode="numeric" list="dlCodigos" value="${esc(r.codigo)}"></div><div></div></div>
+    <label class="f">Procedimento</label><input class="i" id="eX" list="dlProcs" value="${esc(r.procedimento)}">
+    <div class="small muted" style="margin-top:8px">Origem: ${esc(r.origem || '—')} · lançado em ${new Date(r.criadoEm).toLocaleDateString('pt-BR')}</div>
+    <div class="row" style="margin-top:14px"><button class="btn danger" id="eDel" style="flex:1">Excluir</button><button class="btn" id="eOk" style="flex:2">Salvar</button></div>
+    <button class="btn ghost block" style="margin-top:8px" id="eCancel">Cancelar</button>`);
+  $('#eC').oninput = () => { const d = descDoCodigo($('#eC').value); if (d) $('#eX').value = d; };
+  $('#eCancel').onclick = fecharModal;
+  $('#eOk').onclick = async () => {
+    Object.assign(r, { paciente: $('#eP').value.trim(), atendimento: $('#eA').value.replace(/\D/g, ''), data: $('#eD').value, grau: $('#eG').value, codigo: $('#eC').value.replace(/\D/g, ''), procedimento: $('#eX').value.trim(), atualizadoEm: agora() });
+    aprender(r.codigo, r.procedimento); atualizarDatalists();
+    await salvarLocal(); render(); fecharModal(); toast('Alterado ✓');
+  };
+  $('#eDel').onclick = async () => {
+    const b = $('#eDel');
+    if (!b.dataset.c) { b.dataset.c = 1; b.textContent = 'Toque de novo para excluir'; return; }
+    r.removido = true; r.atualizadoEm = agora();
+    await salvarLocal(); render(); fecharModal(); toast('Excluído');
+  };
+}
+
+// ---------- exportar ----------
+function linhasExport() {
+  return filtradas().slice().reverse().map(r => ({ Data: br(r.data), Paciente: r.paciente, 'Nº Atendimento': r.atendimento, Grau: +r.grau, Participação: GRAUS[r.grau] || '', Código: r.codigo, Procedimento: r.procedimento }));
+}
+async function entregarArquivo(blob, nome) {
+  const arq = new File([blob], nome, { type: blob.type });
+  if (navigator.canShare && navigator.canShare({ files: [arq] })) {
+    try { await navigator.share({ files: [arq], title: nome }); return; } catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+}
+$('#btExport').onclick = async () => {
+  const dados = linhasExport(); if (!dados.length) { toast('Nada para exportar.'); return; }
+  const sufixo = filtro.mes || new Date().toISOString().slice(0, 10);
+  try {
+    await carregarScript(CDN.xlsx);
+    const ws = XLSX.utils.json_to_sheet(dados);
+    ws['!cols'] = [{ wch: 11 }, { wch: 32 }, { wch: 14 }, { wch: 6 }, { wch: 13 }, { wch: 11 }, { wch: 44 }];
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Honorários');
+    const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    await entregarArquivo(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `honorarios_${sufixo}.xlsx`);
+  } catch (e) {
+    const cab = Object.keys(dados[0]);
+    const csv = '﻿' + [cab.join(';'), ...dados.map(d => cab.map(k => `"${String(d[k]).replace(/"/g, '""')}"`).join(';'))].join('\r\n');
+    await entregarArquivo(new Blob([csv], { type: 'text/csv' }), `honorarios_${sufixo}.csv`);
+  }
+};
+$('#btCopiar').onclick = async () => {
+  const dados = linhasExport(); if (!dados.length) { toast('Nada para copiar.'); return; }
+  const cab = Object.keys(dados[0]);
+  const tsv = [cab.join('\t'), ...dados.map(d => cab.map(k => d[k]).join('\t'))].join('\n');
+  try { await navigator.clipboard.writeText(tsv); toast('Tabela copiada. Cole no Excel, Numbers ou Planilhas.'); } catch (e) { toast('Não consegui copiar.'); }
+};
+
+// ---------- ajustes ----------
+function renderCfg() {
+  $('#ghOwner').value = GH.owner; $('#ghRepo').value = GH.repo; $('#ghToken').value = GH.token;
+  document.querySelectorAll('#cfgGrau button').forEach(b => b.classList.toggle('on', b.dataset.g === S.cfg.grauPadrao));
+  $('#cfgNome').value = S.cfg.nomeProf || '';
+  const cs = Object.entries(S.codigos).filter(([, x]) => !x.removido).sort((a, b) => a[1].desc.localeCompare(b[1].desc));
+  $('#learnList').innerHTML = cs.length ? cs.map(([c, x]) => `<div><span><b>${esc(c)}</b> · ${esc(x.desc)}</span><button data-esq="${esc(c)}">Esquecer</button></div>`).join('') : '<div class="muted">Nenhum ainda.</div>';
+  renderGhStatus();
+}
+$('#learnList').addEventListener('click', async e => { const c = e.target.dataset.esq; if (!c) return; S.codigos[c] = { ...S.codigos[c], removido: true, atualizadoEm: agora() }; await salvarLocal(); atualizarDatalists(); renderCfg(); });
+$('#cfgGrau').addEventListener('click', async e => { const b = e.target.closest('button'); if (!b) return; S.cfg.grauPadrao = b.dataset.g; S.cfg.atualizadoEm = agora(); await salvarLocal(); renderCfg(); });
+$('#cfgNome').addEventListener('change', async e => { S.cfg.nomeProf = e.target.value.trim(); S.cfg.atualizadoEm = agora(); await salvarLocal(); });
+$('#btGhSalvar').onclick = async () => {
+  GH.owner = $('#ghOwner').value.trim().replace(/^@/, '').replace(/^https?:\/\/github\.com\//, '').split('/')[0];
+  GH.repo = $('#ghRepo').value.trim().split('/').pop();
+  GH.token = $('#ghToken').value.trim();
+  if (!ghOk()) { toast('Preencha os três campos.'); return; }
+  pill('busy', 'Conectando…');
+  try {
+    const r = await ghFetch('');
+    if (!r.ok) throw new Error(erroGH(r));
+    const info = await r.json();
+    if (!info.private) {
+      GH.token = ''; await Local.set('gh', GH);
+      throw new Error('Esse repositório é PÚBLICO: qualquer pessoa veria os dados dos pacientes. Torne-o privado (Settings → Danger Zone → Change visibility) e conecte de novo.');
+    }
+    GH.erro = ''; await Local.set('gh', GH);
+    pedirPersistencia();
+    await sincronizar();
+    if (!GH.erro) toast('Backup conectado ✓');
+  } catch (e) { GH.erro = e.message; pill('err', 'Erro no backup'); }
+  renderCfg();
+};
+$('#btGhSync').onclick = () => { if (!ghOk()) { toast('Configure o backup primeiro.'); return; } sincronizar(); };
+$('#syncPill').onclick = () => mostrar('v-cfg');
+$('#btCopiarExpert').onclick = async () => { try { await navigator.clipboard.writeText(EXPERT_TXT); toast('Instruções copiadas ✓ Cole no Expert do Adapta.'); } catch (e) { toast('Abra "Ver instruções", selecione e copie.'); } };
+$('#btBaixarBkp').onclick = () => entregarArquivo(new Blob([JSON.stringify({ app: 'honorarios', versao: 1, salvoEm: agora(), ...S }, null, 1)], { type: 'application/json' }), `honorarios-backup-${new Date().toISOString().slice(0, 10)}.json`);
+$('#btRestBkp').onclick = () => $('#bkpFile').click();
+$('#bkpFile').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text()); if (!Array.isArray(d.rows)) throw 0;
+    S = mesclar(S, d); await salvarLocal(); atualizarDatalists(); render(); renderCfg(); toast('Cópia restaurada ✓');
+  } catch (x) { toast('Arquivo inválido.'); }
+};
+
+// ---------- navegação ----------
+function mostrar(v) {
+  document.querySelectorAll('.view').forEach(s => s.classList.toggle('on', s.id === v));
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  if (v === 'v-cfg') renderCfg();
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => mostrar(b.dataset.v));
+
+async function pedirPersistencia() { try { if (navigator.storage && navigator.storage.persist) await navigator.storage.persist(); } catch (e) { } }
+
+// ---------- início ----------
+(async function iniciar() {
+  $('#expertTxt').textContent = EXPERT_TXT;
+  $('#versao').textContent = 'Honorários · versão ' + VERSAO;
+  const est = await Local.get('estado');
+  if (est && Array.isArray(est.rows)) S = { ...S, ...est, cfg: { ...S.cfg, ...(est.cfg || {}) } };
+  const gh = await Local.get('gh'); if (gh) GH = { ...GH, ...gh };
+  atualizarDatalists(); render(); pill();
+  if (ghOk()) sincronizar();
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && ghOk()) agendarSync(300); });
+  window.addEventListener('online', () => ghOk() && agendarSync(300));
+  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => { });
+})();
+</script>
+</body>
+</html>
