@@ -89,6 +89,9 @@ tr.mes td{background:var(--bg);font-weight:700;font-size:13px;color:var(--muted)
 .guia img.th{width:76px;height:76px;object-fit:cover;border-radius:10px;border:1px solid var(--line);flex:none;background:var(--bg)}
 .proc-item{border:1px dashed var(--line);border-radius:12px;padding:4px 10px 10px;margin-top:10px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:minmax(0,1fr) 80px;gap:8px}
+.grid2>div,.grid3>div{min-width:0}
+input.i[type=date]{min-width:0;-webkit-appearance:none;appearance:none}
 .note{font-size:13px;padding:8px 10px;border-radius:10px;margin-top:8px}
 .note.warn{background:var(--warn-soft);color:var(--warn)}
 .note.bad{background:var(--bad-soft);color:var(--bad)}
@@ -169,7 +172,7 @@ code,kbd{background:var(--bg);border:1px solid var(--line);border-radius:6px;pad
     <h2>Colar resposta do Adapta</h2>
     <div class="card">
       <div class="small muted">No Adapta, abra o Expert <b>Guias de Honorário</b>, envie as fotos e toque em copiar no bloco de resposta. Depois cole aqui.</div>
-      <textarea class="i" id="txtColar" style="margin-top:10px" placeholder="Paciente | Atendimento | Grau | Código | Procedimento | Data"></textarea>
+      <textarea class="i" id="txtColar" style="margin-top:10px" placeholder="Paciente | Atendimento | Grau | Código | Procedimento | Data | Qtd"></textarea>
       <div class="row" style="margin-top:10px">
         <button class="btn sec" id="btColarClip" style="flex:1">Colar</button>
         <button class="btn" id="btLerColado" style="flex:2">Conferir</button>
@@ -348,6 +351,15 @@ const Parser = (() => {
     return d.replace(/\s+/g, ' ').trim();
   }
 
+  // Campo 29 (Qtde.): primeiro número solto logo depois da descrição. Se não achar, 1.
+  function quantidadeDepois(resto) {
+    const r = resto || '';
+    const fecha = r.indexOf(')');
+    const depois = fecha >= 0 ? r.slice(fecha + 1) : r.replace(new RegExp(`^[${LETRAS}\\s()/,.-]+`), '');
+    const m = /^[^\d]{0,6}?\b([1-9])\b/.exec(depois);
+    return m ? m[1] : '1';
+  }
+
   function levmed(textos, cfg) {
     const tudo = textos.join('\n');
     const linhas = tudo.split('\n').map(l => l.trim()).filter(Boolean);
@@ -379,7 +391,7 @@ const Parser = (() => {
       const key = m[2] + data;
       if (!data || vistos.has(key)) continue;
       vistos.add(key);
-      r.procedimentos.push({ data, codigo: m[2], procedimento: limparDescricao(m[3]) });
+      r.procedimentos.push({ data, codigo: m[2], procedimento: limparDescricao(m[3]), quantidade: quantidadeDepois(m[3]) });
     }
     if (!r.procedimentos.length) {
       // plano B: datas com horário + códigos de 8 dígitos soltos
@@ -399,6 +411,7 @@ const Parser = (() => {
         r.procedimentos.push({
           data: datas[i] || datas[0] || '',
           codigo: codigos[i] || '',
+          quantidade: '1',
           procedimento: limparDescricao(descs[i] || ''),
         });
       }
@@ -428,7 +441,7 @@ const Parser = (() => {
       if (e) data = dataISO(e[1]);
     }
     const obs = (linhas.find(l => /consulta|parecer|visita|cirurg|procedimento\s+\w/i.test(l) && !/HDH|Exames/i.test(l)) || '').replace(/[|=]+/g, '').trim();
-    r.procedimentos.push({ data, codigo: '', procedimento: '', obs });
+    r.procedimentos.push({ data, codigo: '', procedimento: '', quantidade: '1', obs });
     return r;
   }
 
@@ -452,7 +465,8 @@ const Parser = (() => {
       if (p.length < 6) continue;
       if (/paciente/i.test(p[0]) && /atend/i.test(p[1])) continue; // cabeçalho
       if (/^[-:\s]+$/.test(p[0])) continue; // separador de tabela markdown
-      const [paciente, atendimento, grau, codigo, procedimento, data] = p;
+      const [paciente, atendimento, grau, codigo, procedimento, data, qtd] = p;
+      const q = soDigitos(qtd || '');
       out.push({
         paciente: limparNome(paciente.replace(/\?/g, '')),
         atendimento: soDigitos(atendimento),
@@ -460,6 +474,7 @@ const Parser = (() => {
         codigo: soDigitos(codigo).length === 8 ? soDigitos(codigo) : soDigitos(codigo),
         procedimento: procedimento.replace(/^\?$/, '').trim(),
         data: dataISO(data),
+        quantidade: q && +q > 0 && +q < 100 ? String(+q) : '1',
       });
     }
     return out;
@@ -472,8 +487,8 @@ if (typeof module !== 'undefined') module.exports = Parser;
 </script>
 <script>
 'use strict';
-const VERSAO = '1.0.0';
-const EXPERT_TXT = "Você é um assistente que transcreve guias de honorário médico-odontológicas para uma tabela. Eu vou enviar uma ou mais FOTOS (ou PDFs) de guias. Para cada foto, leia com atenção e devolva os dados no formato abaixo.\n\nFORMATO DE RESPOSTA (obrigatório):\n- Responda SOMENTE com um bloco de código, sem nenhum texto antes ou depois.\n- Uma linha por PROCEDIMENTO (se a guia tiver 3 procedimentos, são 3 linhas, repetindo paciente e atendimento).\n- Campos separados por \" | \" exatamente nesta ordem:\nPACIENTE | ATENDIMENTO | GRAU | CÓDIGO | PROCEDIMENTO | DATA\n\nExemplo:\n```\nMaria da Silva Souza | 10476625 | 0 | 10102019 | Visita hospitalar (paciente internado) | 13/10/2026\n```\n\nEXISTEM DOIS MODELOS DE FOLHA:\n\n1) \"GUIA DE HONORÁRIO INDIVIDUAL\" (Levmed). A foto pode estar deitada; leia mesmo assim.\n- PACIENTE: campo \"8 - Nome\" (dados do beneficiário). NÃO use o nome do profissional executante (campos 14 e 18).\n- ATENDIMENTO: número no canto superior direito, ao lado de \"Atend.:\". Só os dígitos, sem pontos.\n- GRAU: campo \"17 - Grau Part.\" (0 = cirurgião principal, 1 = primeiro auxiliar, 2 = segundo auxiliar). Se estiver em branco, use 0.\n- CÓDIGO: campo \"27 - Código do Procedimento\" (8 dígitos) de cada linha da tabela \"Procedimentos Realizados\".\n- PROCEDIMENTO: campo \"28 - Descrição\" da mesma linha.\n- DATA: campo \"23 - Data\" da mesma linha, no formato dd/mm/aaaa. Não use a data de \"Impresso em\" nem a validade da carteira.\n\n2) \"HDH - Procedimentos/Exames\" (Hospital Dona Helena).\n- PACIENTE: campo \"Nome\".\n- ATENDIMENTO: campo \"Atendimento\". Só os dígitos, sem pontos (ex.: 10.496.400 vira 10496400).\n- GRAU: essa folha não tem grau; use 0.\n- CÓDIGO e PROCEDIMENTO: estão ESCRITOS À MÃO pelo profissional na parte de baixo da folha. Transcreva o código (8 dígitos) e o nome do procedimento escritos à mão. Abreviações comuns: \"EME\" ou \"EMG\" = emergência.\n- DATA: a data da linha \"Registro / Profissional\" (ex.: 23/10/2026). Se não houver, use a \"Data Entrada\".\n\nREGRAS:\n- Nunca invente dados. Se não conseguir ler um campo com segurança, escreva ? no lugar dele.\n- Não inclua endereço, telefone, data de nascimento ou outros dados do paciente: só os 6 campos pedidos.\n- Se eu enviar várias fotos, junte todas as linhas no mesmo bloco de código.\n";
+const VERSAO = '1.1.0';
+const EXPERT_TXT = "Você é um assistente que transcreve guias de honorário médico-odontológicas para uma tabela. Eu vou enviar uma ou mais FOTOS (ou PDFs) de guias. Para cada foto, leia com atenção e devolva os dados no formato abaixo.\n\nFORMATO DE RESPOSTA (obrigatório):\n- Responda SOMENTE com um bloco de código, sem nenhum texto antes ou depois.\n- Uma linha por PROCEDIMENTO (se a guia tiver 3 procedimentos, são 3 linhas, repetindo paciente e atendimento).\n- Campos separados por \" | \" exatamente nesta ordem:\nPACIENTE | ATENDIMENTO | GRAU | CÓDIGO | PROCEDIMENTO | DATA | QTD\n\nExemplo:\n```\nMaria da Silva Souza | 10476625 | 0 | 10102019 | Visita hospitalar (paciente internado) | 13/10/2026 | 1\n```\n\nEXISTEM DOIS MODELOS DE FOLHA:\n\n1) \"GUIA DE HONORÁRIO INDIVIDUAL\" (Levmed). A foto pode estar deitada; leia mesmo assim.\n- PACIENTE: campo \"8 - Nome\" (dados do beneficiário). NÃO use o nome do profissional executante (campos 14 e 18).\n- ATENDIMENTO: número no canto superior direito, ao lado de \"Atend.:\". Só os dígitos, sem pontos.\n- GRAU: campo \"17 - Grau Part.\" (0 = cirurgião principal, 1 = primeiro auxiliar, 2 = segundo auxiliar). Se estiver em branco, use 0.\n- CÓDIGO: campo \"27 - Código do Procedimento\" (8 dígitos) de cada linha da tabela \"Procedimentos Realizados\".\n- PROCEDIMENTO: campo \"28 - Descrição\" da mesma linha.\n- DATA: campo \"23 - Data\" da mesma linha, no formato dd/mm/aaaa. Não use a data de \"Impresso em\" nem a validade da carteira.\n- QTD: campo \"29 - Qtde.\" da mesma linha (quantidade, ex.: 1 ou 2). Se estiver em branco, use 1.\n\n2) \"HDH - Procedimentos/Exames\" (Hospital Dona Helena).\n- PACIENTE: campo \"Nome\".\n- ATENDIMENTO: campo \"Atendimento\". Só os dígitos, sem pontos (ex.: 10.496.400 vira 10496400).\n- GRAU: essa folha não tem grau; use 0.\n- CÓDIGO e PROCEDIMENTO: estão ESCRITOS À MÃO pelo profissional na parte de baixo da folha. Transcreva o código (8 dígitos) e o nome do procedimento escritos à mão. Abreviações comuns: \"EME\" ou \"EMG\" = emergência.\n- DATA: a data da linha \"Registro / Profissional\" (ex.: 23/10/2026). Se não houver, use a \"Data Entrada\".\n- QTD: se houver quantidade escrita à mão junto do código, use-a; se não, use 1.\n\nREGRAS:\n- Nunca invente dados. Se não conseguir ler um campo com segurança, escreva ? no lugar dele.\n- Não inclua endereço, telefone, data de nascimento ou outros dados do paciente: só os 7 campos pedidos.\n- Se eu enviar várias fotos, junte todas as linhas no mesmo bloco de código.\n";
 const GRAUS = { '0': 'Principal', '1': '1º auxiliar', '2': '2º auxiliar', '3': '3º auxiliar' };
 const CDN = {
   tjs: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js',
@@ -841,7 +856,7 @@ function novaGuiaRev(ex, img) {
     const aprendida = descDoCodigo(codigo);
     if (aprendida) procedimento = aprendida;
     if (!codigo && procedimento) codigo = codigoDaDesc(procedimento);
-    return { data: p.data || '', codigo, procedimento, obs };
+    return { data: p.data || '', codigo, procedimento, quantidade: String(p.quantidade || '1'), obs };
   });
   return { id: uid(), textos: img && img.textos, modelo: ex.modelo || '', paciente: ex.paciente || '', atendimento: ex.atendimento || '', grau: ex.grau || S.cfg.grauPadrao || '0', imagem: img && img.imagem, thumb: img && img.thumb, procs };
 }
@@ -856,10 +871,11 @@ function renderRevisao() {
       const dup = duplicada(g, p);
       const falta = !p.data || !p.codigo || !p.procedimento;
       return `<div class="proc-item">
-        <div class="grid2">
-          <div><label class="f">Data</label><input class="i ${p.data ? '' : 'miss'}" type="date" value="${esc(p.data)}" data-g="${gi}" data-p="${pi}" data-k="data"></div>
+        <div class="grid3">
           <div><label class="f">Código</label><input class="i ${p.codigo ? '' : 'miss'}" inputmode="numeric" list="dlCodigos" value="${esc(p.codigo)}" data-g="${gi}" data-p="${pi}" data-k="codigo" placeholder="8 dígitos"></div>
+          <div><label class="f">Qtd</label><input class="i ${p.quantidade ? '' : 'miss'}" inputmode="numeric" value="${esc(p.quantidade)}" data-g="${gi}" data-p="${pi}" data-k="quantidade"></div>
         </div>
+        <label class="f">Data</label><input class="i ${p.data ? '' : 'miss'}" type="date" value="${esc(p.data)}" data-g="${gi}" data-p="${pi}" data-k="data">
         <label class="f">Procedimento</label><input class="i ${p.procedimento ? '' : 'miss'}" list="dlProcs" value="${esc(p.procedimento)}" data-g="${gi}" data-p="${pi}" data-k="procedimento" placeholder="Nome do procedimento">
         ${p.obs ? (/ajustei/.test(p.obs) ? `<div class="note warn">${esc(p.obs)}</div>` : `<div class="note info">Texto impresso na folha: “${esc(p.obs)}”. O código e o procedimento escritos à mão estão na foto.</div>`) : ''}
         ${dup ? `<div class="note warn">⚠️ Já existe na tabela (mesmo atendimento, código e data). Se salvar, fica repetido.</div>` : ''}
@@ -896,7 +912,7 @@ $('#revLista').addEventListener('input', e => {
   let v = t.value;
   if (k === 'atendimento') v = v.replace(/\D/g, '');
   if (t.dataset.p != null) {
-    const p = g.procs[+t.dataset.p]; p[k] = k === 'codigo' ? v.replace(/\D/g, '') : v;
+    const p = g.procs[+t.dataset.p]; p[k] = (k === 'codigo' || k === 'quantidade') ? v.replace(/\D/g, '') : v;
     if (k === 'codigo') { const d = descDoCodigo(p.codigo); if (d) { p.procedimento = d; const el = t.closest('.proc-item').querySelector('[data-k=procedimento]'); el.value = d; el.classList.remove('miss'); } }
     if (k === 'procedimento' && !p.codigo) { const c = codigoDaDesc(v); if (c) { p.codigo = c; const el = t.closest('.proc-item').querySelector('[data-k=codigo]'); el.value = c; el.classList.remove('miss'); } }
   } else g[k] = v;
@@ -905,7 +921,7 @@ $('#revLista').addEventListener('input', e => {
 $('#revLista').addEventListener('click', e => {
   const t = e.target.closest('[data-ver],[data-addp],[data-delg],[data-delp]'); if (!t) return;
   if (t.dataset.ver != null) return verImagem(revisao[+t.dataset.ver].imagem);
-  if (t.dataset.addp != null) { const g = revisao[+t.dataset.addp]; const ult = g.procs[g.procs.length - 1]; g.procs.push({ data: ult ? ult.data : '', codigo: '', procedimento: '' }); }
+  if (t.dataset.addp != null) { const g = revisao[+t.dataset.addp]; const ult = g.procs[g.procs.length - 1]; g.procs.push({ data: ult ? ult.data : '', codigo: '', procedimento: '', quantidade: '1' }); }
   if (t.dataset.delg != null) revisao.splice(+t.dataset.delg, 1);
   if (t.dataset.delp != null) { const [a, b] = t.dataset.delp.split(':').map(Number); revisao[a].procs.splice(b, 1); }
   renderRevisao();
@@ -919,7 +935,7 @@ $('#btSalvarRev').onclick = async () => {
   }
   let n = 0;
   for (const g of revisao) for (const p of g.procs) {
-    S.rows.push({ id: uid(), paciente: g.paciente.trim(), atendimento: g.atendimento, grau: g.grau, codigo: p.codigo, procedimento: p.procedimento.trim(), data: p.data, origem: g.modelo || '', criadoEm: agora(), atualizadoEm: agora() });
+    S.rows.push({ id: uid(), paciente: g.paciente.trim(), atendimento: g.atendimento, grau: g.grau, codigo: p.codigo, procedimento: p.procedimento.trim(), quantidade: String(+p.quantidade || 1), data: p.data, origem: g.modelo || '', criadoEm: agora(), atualizadoEm: agora() });
     aprender(p.codigo, p.procedimento); n++;
   }
   revisao = []; resetBtnSalvar();
@@ -930,7 +946,7 @@ function resetBtnSalvar() { const b = $('#btSalvarRev'); delete b.dataset.confir
 $('#btCancelRev').onclick = () => { revisao = []; resetBtnSalvar(); telaAdd('addInicio'); };
 $('#btFotos').onclick = () => $('#arquivos').click();
 $('#arquivos').onchange = e => { const l = [...e.target.files]; e.target.value = ''; if (l.length) processarArquivos(l); };
-$('#btManual').onclick = () => { revisao = [novaGuiaRev({ modelo: 'Manual', procedimentos: [{ data: new Date().toISOString().slice(0, 10) }] })]; resetBtnSalvar(); abrirRevisao(); };
+$('#btManual').onclick = () => { revisao = [novaGuiaRev({ modelo: 'Manual', procedimentos: [{ data: new Date().toISOString().slice(0, 10), quantidade: '1' }] })]; resetBtnSalvar(); abrirRevisao(); };
 $('#btColar').onclick = () => telaAdd('addColar');
 document.querySelectorAll('[data-voltar]').forEach(b => b.onclick = () => telaAdd('addInicio'));
 $('#btColarClip').onclick = async () => { try { $('#txtColar').value = await navigator.clipboard.readText(); } catch (e) { toast('Toque e segure na caixa de texto e escolha Colar.'); } };
@@ -944,9 +960,9 @@ $('#btLerColado').onclick = () => {
     if (!grupos.has(k)) grupos.set(k, novaGuiaRev({ modelo: 'Adapta', paciente: l.paciente, atendimento: l.atendimento, grau: l.grau, procedimentos: [] }));
     const g = grupos.get(k); if (l.grau) g.grau = l.grau;
     const desc = descDoCodigo(l.codigo) || l.procedimento;
-    g.procs.push({ data: l.data, codigo: l.codigo, procedimento: desc });
+    g.procs.push({ data: l.data, codigo: l.codigo, procedimento: desc, quantidade: l.quantidade || '1' });
   }
-  revisao = [...grupos.values()].map(g => { g.procs = g.procs.filter(p => p.data || p.codigo || p.procedimento); if (!g.procs.length) g.procs.push({ data: '', codigo: '', procedimento: '' }); return g; });
+  revisao = [...grupos.values()].map(g => { g.procs = g.procs.filter(p => p.data || p.codigo || p.procedimento); if (!g.procs.length) g.procs.push({ data: '', codigo: '', procedimento: '', quantidade: '1' }); return g; });
   $('#txtColar').value = ''; resetBtnSalvar(); abrirRevisao();
 };
 
@@ -981,10 +997,10 @@ function render() {
   let html = '', mesAtual = null;
   for (const r of lista) {
     const m = (r.data || '').slice(0, 7);
-    if (!filtro.mes && m !== mesAtual) { mesAtual = m; html += `<tr class="mes"><td colspan="6">${m ? nomeMes(m) : 'Sem data'}</td></tr>`; }
-    html += `<tr data-id="${r.id}"><td>${esc(br(r.data).slice(0, 6) + br(r.data).slice(8))}</td><td class="pac">${esc(r.paciente)}</td><td>${esc(r.atendimento)}</td><td><span class="badge g${esc(r.grau)}">${esc(r.grau)}</span></td><td>${esc(r.codigo)}</td><td class="proc">${esc(r.procedimento)}</td></tr>`;
+    if (!filtro.mes && m !== mesAtual) { mesAtual = m; html += `<tr class="mes"><td colspan="7">${m ? nomeMes(m) : 'Sem data'}</td></tr>`; }
+    html += `<tr data-id="${r.id}"><td>${esc(br(r.data).slice(0, 6) + br(r.data).slice(8))}</td><td class="pac">${esc(r.paciente)}</td><td>${esc(r.atendimento)}</td><td><span class="badge g${esc(r.grau)}">${esc(r.grau)}</span></td><td>${esc(r.codigo)}</td><td style="text-align:center">${esc(r.quantidade || '1')}</td><td class="proc">${esc(r.procedimento)}</td></tr>`;
   }
-  $('#tabela').innerHTML = `<div class="dica">deslize a tabela para o lado →</div><div class="tablewrap"><table><thead><tr><th>Data</th><th>Paciente</th><th>Atend.</th><th>Grau</th><th>Código</th><th>Procedimento</th></tr></thead><tbody>${html}</tbody></table></div>`;
+  $('#tabela').innerHTML = `<div class="dica">deslize a tabela para o lado →</div><div class="tablewrap"><table><thead><tr><th>Data</th><th>Paciente</th><th>Atend.</th><th>Grau</th><th>Código</th><th>Qtd</th><th>Procedimento</th></tr></thead><tbody>${html}</tbody></table></div>`;
 }
 $('#busca').addEventListener('input', e => { filtro.busca = e.target.value; render(); });
 $('#fMes').addEventListener('change', e => { filtro.mes = e.target.value; render(); });
@@ -1003,7 +1019,7 @@ function editar(id) {
     <div><label class="f">Data</label><input class="i" id="eD" type="date" value="${esc(r.data)}"></div></div>
     <label class="f">Grau de participação</label>
     <select class="i" id="eG">${['0', '1', '2'].map(v => `<option value="${v}" ${r.grau === v ? 'selected' : ''}>${v} · ${GRAUS[v]}</option>`).join('')}</select>
-    <div class="grid2"><div><label class="f">Código</label><input class="i" id="eC" inputmode="numeric" list="dlCodigos" value="${esc(r.codigo)}"></div><div></div></div>
+    <div class="grid2"><div><label class="f">Código</label><input class="i" id="eC" inputmode="numeric" list="dlCodigos" value="${esc(r.codigo)}"></div><div><label class="f">Quantidade</label><input class="i" id="eQ" inputmode="numeric" value="${esc(r.quantidade || '1')}"></div></div>
     <label class="f">Procedimento</label><input class="i" id="eX" list="dlProcs" value="${esc(r.procedimento)}">
     <div class="small muted" style="margin-top:8px">Origem: ${esc(r.origem || '—')} · lançado em ${new Date(r.criadoEm).toLocaleDateString('pt-BR')}</div>
     <div class="row" style="margin-top:14px"><button class="btn danger" id="eDel" style="flex:1">Excluir</button><button class="btn" id="eOk" style="flex:2">Salvar</button></div>
@@ -1011,7 +1027,7 @@ function editar(id) {
   $('#eC').oninput = () => { const d = descDoCodigo($('#eC').value); if (d) $('#eX').value = d; };
   $('#eCancel').onclick = fecharModal;
   $('#eOk').onclick = async () => {
-    Object.assign(r, { paciente: $('#eP').value.trim(), atendimento: $('#eA').value.replace(/\D/g, ''), data: $('#eD').value, grau: $('#eG').value, codigo: $('#eC').value.replace(/\D/g, ''), procedimento: $('#eX').value.trim(), atualizadoEm: agora() });
+    Object.assign(r, { paciente: $('#eP').value.trim(), atendimento: $('#eA').value.replace(/\D/g, ''), data: $('#eD').value, grau: $('#eG').value, codigo: $('#eC').value.replace(/\D/g, ''), quantidade: String(+$('#eQ').value.replace(/\D/g, '') || 1), procedimento: $('#eX').value.trim(), atualizadoEm: agora() });
     aprender(r.codigo, r.procedimento); atualizarDatalists();
     await salvarLocal(); render(); fecharModal(); toast('Alterado ✓');
   };
@@ -1025,7 +1041,7 @@ function editar(id) {
 
 // ---------- exportar ----------
 function linhasExport() {
-  return filtradas().slice().reverse().map(r => ({ Data: br(r.data), Paciente: r.paciente, 'Nº Atendimento': r.atendimento, Grau: +r.grau, Participação: GRAUS[r.grau] || '', Código: r.codigo, Procedimento: r.procedimento }));
+  return filtradas().slice().reverse().map(r => ({ Data: br(r.data), Paciente: r.paciente, 'Nº Atendimento': r.atendimento, Grau: +r.grau, Participação: GRAUS[r.grau] || '', Código: r.codigo, Quantidade: +(r.quantidade || 1), Procedimento: r.procedimento }));
 }
 async function entregarArquivo(blob, nome) {
   const arq = new File([blob], nome, { type: blob.type });
@@ -1041,7 +1057,7 @@ $('#btExport').onclick = async () => {
   try {
     await carregarScript(CDN.xlsx);
     const ws = XLSX.utils.json_to_sheet(dados);
-    ws['!cols'] = [{ wch: 11 }, { wch: 32 }, { wch: 14 }, { wch: 6 }, { wch: 13 }, { wch: 11 }, { wch: 44 }];
+    ws['!cols'] = [{ wch: 11 }, { wch: 32 }, { wch: 14 }, { wch: 6 }, { wch: 13 }, { wch: 11 }, { wch: 11 }, { wch: 44 }];
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Honorários');
     const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     await entregarArquivo(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `honorarios_${sufixo}.xlsx`);
