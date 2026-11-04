@@ -111,6 +111,19 @@ code,kbd{background:var(--bg);border:1px solid var(--line);border-radius:6px;pad
 .viewer.zoom img{width:260%}
 .viewer .x{position:fixed;top:calc(var(--safe-t) + 10px);right:12px;z-index:2;background:rgba(255,255,255,.9);color:#000;border:0;border-radius:99px;padding:8px 14px;font-weight:700}
 .viewer .hint{position:fixed;bottom:calc(var(--safe-b) + 14px);left:0;right:0;text-align:center;color:#fff;font-size:13px;opacity:.8}
+nav.tabs button{min-width:0}
+.st{display:inline-block;font-size:12px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.st.pago{background:var(--acc-soft);color:var(--ok)}.st.pend{background:var(--warn-soft);color:var(--warn)}.st.div{background:var(--bad-soft);color:var(--bad)}
+.lista-rep>div{display:flex;gap:10px;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.lista-rep>div:last-child{border-bottom:0}
+.lista-rep .v{font-weight:700;white-space:nowrap;text-align:right}
+.lista-rep .d{color:var(--muted);font-size:12px}
+.resumo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.resumo div{border-radius:12px;padding:10px;border:1px solid var(--line);background:var(--bg)}
+.resumo b{display:block;font-size:19px}.resumo span{font-size:12px;color:var(--muted)}
+details.sec{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px;border-top:1px solid var(--line)}
+details.sec summary{color:var(--ink);display:flex;justify-content:space-between;gap:8px;list-style:none}
+details.sec summary::-webkit-details-marker{display:none}
 #toast{position:fixed;left:50%;bottom:calc(90px + var(--safe-b));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--card);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:.25s;z-index:70;max-width:90vw;text-align:center;pointer-events:none}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .toolbar{display:flex;gap:8px;margin:10px 0}
@@ -143,6 +156,11 @@ code,kbd{background:var(--bg);border:1px solid var(--line);border-radius:6px;pad
     <button class="chip" data-g="0">0 · Principal</button>
     <button class="chip" data-g="1">1 · 1º auxiliar</button>
     <button class="chip" data-g="2">2 · 2º auxiliar</button>
+  </div>
+  <div class="chips" id="fStatus" style="margin-top:8px">
+    <button class="chip on" data-s="">Todos</button>
+    <button class="chip" data-s="pago">✓ Pagos</button>
+    <button class="chip" data-s="pend">Pendentes</button>
   </div>
   <div class="stats" id="stats"></div>
   <div id="tabela"></div>
@@ -198,6 +216,20 @@ code,kbd{background:var(--bg);border:1px solid var(--line);border-radius:6px;pad
   </div>
 </section>
 
+<!-- ================= REPASSE ================= -->
+<section class="view" id="v-rep">
+  <h2>Conferir repasse</h2>
+  <div class="card">
+    <div class="small muted">Escolha o PDF do repasse que o hospital manda. O app separa só os seus procedimentos e confere um por um com a tabela.</div>
+    <button class="btn block" id="btRepPdf" style="margin-top:10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M12 11v6m0 0-3-3m3 3 3-3"/></svg>Importar PDF do repasse</button>
+    <input type="file" id="repArq" accept="application/pdf,.pdf" class="hidden">
+    <div class="small muted" style="margin-top:8px">No iPhone: salve o PDF no app <b>Arquivos</b> (no WhatsApp ou no e-mail: Compartilhar → Salvar em Arquivos) e escolha aqui.</div>
+  </div>
+  <div id="repPend"></div>
+  <div id="repAtual"></div>
+  <div id="repHist"></div>
+</section>
+
 <!-- ================= AJUSTES ================= -->
 <section class="view" id="v-cfg">
   <h2>Backup automático</h2>
@@ -233,6 +265,9 @@ code,kbd{background:var(--bg);border:1px solid var(--line);border-radius:6px;pad
     <div class="seg" id="cfgGrau">
       <button data-g="0">0 · Principal</button><button data-g="1">1 · 1º aux</button><button data-g="2">2 · 2º aux</button>
     </div>
+    <label class="f">Início do controle (conferência de repasse)</label>
+    <input class="i" type="date" id="cfgInicio">
+    <div class="small muted" id="cfgInicioTxt" style="margin-top:4px"></div>
     <label class="f">Seu nome (para o app não confundir com o paciente)</label>
     <input class="i" id="cfgNome" placeholder="Nome do profissional">
   </div>
@@ -275,6 +310,7 @@ code,kbd{background:var(--bg);border:1px solid var(--line);border-radius:6px;pad
 <nav class="tabs">
   <button data-v="v-lista" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 9v11"/></svg>Tabela</button>
   <button data-v="v-add" class="add"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span>Adicionar</button>
+  <button data-v="v-rep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.6"/><path d="M3 10h2M19 15h2"/></svg>Repasse</button>
   <button data-v="v-cfg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Ajustes</button>
 </nav>
 
@@ -484,10 +520,200 @@ const Parser = (() => {
 })();
 if (typeof module !== 'undefined') module.exports = Parser;
 
+// ===== Leitura do relatório "HDH - Repasse à Terceiros" (PDF com texto) =====
+const Repasse = (() => {
+  const RE_ATEND = /^\d{1,2}\.\d{3}\.\d{3}$/;
+  const RE_DATA = /^\d{2}\/\d{2}\/\d{4}$/;
+  const RE_VALOR = /^\d{1,3}(\.\d{3})*,\d{2}$/;
+  const num = s => +String(s).replace(/\./g, '').replace(',', '.');
+  const iso = s => { const [d, m, y] = s.split('/'); return `${y}-${m}-${d}`; };
+  const norm = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+  // paginas: [[{s, x, y, w}]]  (texto posicionado de cada página)
+  function ler(paginas) {
+    const meta = { numero: '', inicio: '', fim: '', terceiro: '' };
+    const itens = [];
+    const cabecalhosConv = [];
+    let medicoSecao = '';
+    for (const pg of paginas) {
+      // agrupa por linha (mesma altura)
+      const linhas = [];
+      for (const it of [...pg].sort((a, b) => b.y - a.y || a.x - b.x)) {
+        const l = linhas.find(l => Math.abs(l.y - it.y) < 2.5);
+        if (l) l.it.push(it); else linhas.push({ y: it.y, it: [it] });
+      }
+      linhas.forEach(l => l.it.sort((a, b) => a.x - b.x));
+      // colunas a partir do cabeçalho da página
+      const cab = linhas.find(l => l.it.some(t => /N[ºo°]\s*Atend/i.test(t.s)));
+      const col = {};
+      if (cab) for (const t of cab.it) {
+        if (/^Conv[eê]nio$/i.test(t.s.trim())) col.conv = t.x;
+        else if (/^Procedimento/i.test(t.s.trim())) col.proc = t.x;
+        else if (/^Data$/i.test(t.s.trim())) col.data = t.x;
+        else if (/^M[ée]dico$/i.test(t.s.trim())) col.med = t.x;
+        else if (/^Qtde/i.test(t.s.trim())) col.qtd = t.x;
+      }
+      for (const l of linhas) {
+        const txt = l.it.map(t => t.s).join(' ');
+        let m;
+        if (!meta.numero && (m = /Repasse\s*:\s*(\d+)/.exec(txt))) meta.numero = m[1];
+        if (!meta.inicio && (m = /Per[ií]odo\s*:\s*(\d{2}\/\d{2}\/\d{4})\s*at[ée]\s*(\d{2}\/\d{2}\/\d{4})/.exec(txt))) { meta.inicio = iso(m[1]); meta.fim = iso(m[2]); }
+        if (!meta.terceiro && (m = /Terceiro\s*:\s*(.+?)(?:\s+Per[ií]odo|$)/.exec(txt))) meta.terceiro = m[1].trim();
+        const a = l.it.find(t => RE_ATEND.test(t.s.trim()));
+        const d = l.it.find(t => RE_DATA.test(t.s.trim()));
+        const vals = l.it.filter(t => RE_VALOR.test(t.s.trim()));
+        if (!a || !d || !vals.length) {
+          // linha com só um nome no começo = título da seção do médico
+          if (l.it.length === 1 && l.it[0].x >= 35 && l.it[0].x < 60 && !/Total/.test(l.it[0].s)) cabecalhosConv.push(l.it[0].s.trim());
+          if (l.it.length === 1 && l.it[0].x < 30 && /^[A-ZÀ-Ö][a-zà-ÿ]+(\s+\S+){1,6}$/.test(l.it[0].s.trim()) && !/Repasse|Conv[eê]nio/.test(l.it[0].s)) medicoSecao = l.it[0].s.trim();
+          continue;
+        }
+        // separa textos que atravessam a fronteira entre colunas (ex.: convênio grudado no procedimento)
+        const xConv0 = col.conv ?? 150, xProc0 = col.proc ?? 210;
+        const partidos = [];
+        for (const t of l.it) {
+          let atual = t;
+          for (const B of [xConv0, xProc0]) {
+            if (atual.x < B - 3 && atual.x + atual.w > B + 8 && atual.s.length > 3) {
+              const cw = atual.w / atual.s.length;
+              let k = Math.round((B - atual.x) / cw);
+              const esp = [...atual.s].map((c, i) => c === ' ' ? i : -1).filter(i => i > 0);
+              if (esp.length) k = esp.reduce((a, b) => Math.abs(b - k) < Math.abs(a - k) ? b : a);
+              const e = atual.s.slice(0, k), dpar = atual.s.slice(k).trimStart();
+              if (e.trim() && dpar) { partidos.push({ s: e, x: atual.x, y: atual.y, w: cw * e.length }); atual = { s: dpar, x: B, y: atual.y, w: cw * dpar.length }; }
+            }
+          }
+          partidos.push(atual);
+        }
+        const houveDivisao = partidos.length !== l.it.length;
+        l.it = partidos;
+        const valor = vals[vals.length - 1];
+        const entre = (x0, x1) => l.it.filter(t => t !== a && t !== d && t !== valor && t.x >= x0 - 3 && t.x < x1 - 3).map(t => t.s.trim()).join(' ').replace(/\s+/g, ' ').trim();
+        const xConv = col.conv ?? 150, xProc = col.proc ?? 210, xMed = col.med ?? (d.x + d.w + 2), xQtd = col.qtd ?? (valor.x - 40);
+        const qtdItem = l.it.filter(t => t !== valor && /^\d{1,3}$/.test(t.s.trim()) && t.x > xMed).pop();
+        itens.push({
+          atendimento: a.s.replace(/\D/g, ''),
+          paciente: entre(a.x + a.w, xConv),
+          convenio: entre(xConv, xProc),
+          procedimento: entre(xProc, d.x + 3),
+          data: iso(d.s.trim()),
+          medico: entre(xMed, qtdItem ? qtdItem.x : xQtd) || medicoSecao,
+          medicoSecao,
+          quantidade: qtdItem ? +qtdItem.s : 1,
+          valor: num(valor.s),
+          _inteiro: !houveDivisao,
+        });
+      }
+    }
+    // acerta a divisão convênio/procedimento usando os nomes de convênio que aparecem sozinhos no relatório
+    const conhecidos = new Set(cabecalhosConv);
+    for (const it of itens) if (it._inteiro) conhecidos.add(it.convenio);
+    for (const it of itens) {
+      let c = it.convenio.split(' ');
+      while (!conhecidos.has(c.join(' ')) && c.length > 1 && conhecidos.has(c.slice(0, -1).join(' '))) {
+        it.procedimento = (c.pop() + ' ' + it.procedimento).trim();
+      }
+      it.convenio = c.join(' ');
+      delete it._inteiro;
+    }
+    return { meta, itens };
+  }
+
+  // ---- cruzamento ----
+  const PARADAS = new Set(['para', 'com', 'sem', 'ou', 'de', 'da', 'do', 'das', 'dos', 'em', 'no', 'na', 'e', 'a', 'o', 'exceto', 'geral', 'medica', 'medico', 'tipo']);
+  const toks = s => norm(s).split(' ').filter(w => w.length >= 4 && !PARADAS.has(w)).map(w => w.slice(0, 7));
+  function semelhanca(a, b) {
+    const A = new Set(toks(a)), B = new Set(toks(b));
+    if (!A.size || !B.size) return 0;
+    let i = 0; for (const w of A) if (B.has(w)) i++;
+    return i / Math.min(A.size, B.size);
+  }
+  const mesmoMedico = (med, nome) => {
+    const n = norm(nome).split(' ').filter(w => w.length > 2);
+    const m = norm(med);
+    return n.length > 0 && n.slice(0, 2).every(w => m.includes(w.slice(0, 5)));
+  };
+  const primeirosNomes = s => norm(s).split(' ').slice(0, 2).join(' ');
+
+  // linhas: procedimentos do app (vivos); itens: itens de repasse (já filtrados pelo médico), cada um com .repasse
+  function cruzar(linhas, itens) {
+    const porAtend = new Map();
+    for (const r of linhas) { const k = r.atendimento || ''; if (!porAtend.has(k)) porAtend.set(k, []); porAtend.get(k).push(r); }
+    // todas as combinações possíveis com nota; depois escolhe as melhores primeiro
+    const cand = [];
+    itens.forEach((it, ii) => {
+      for (const r of porAtend.get(it.atendimento) || []) {
+        const s = semelhanca(r.procedimento, it.procedimento);
+        if (r.data !== it.data && s < .5) continue;
+        cand.push({ ii, r, n: (r.data === it.data ? 2 : 0) + s * 2 + ((+r.quantidade || 1) === it.quantidade ? .3 : 0) });
+      }
+    });
+    cand.sort((a, b) => b.n - a.n);
+    const usados = new Set(), feitos = new Map();
+    for (const c of cand) { if (usados.has(c.r.id) || feitos.has(c.ii)) continue; usados.add(c.r.id); feitos.set(c.ii, c.r); }
+    // sem nº de atendimento igual: mesma data + mesmo começo do nome + procedimento parecido
+    itens.forEach((it, ii) => {
+      if (feitos.has(ii)) return;
+      let melhor = null, nota = .5;
+      for (const r of linhas) {
+        if (usados.has(r.id) || r.data !== it.data || primeirosNomes(r.paciente) !== primeirosNomes(it.paciente)) continue;
+        const s = semelhanca(r.procedimento, it.procedimento);
+        if (s >= nota) { nota = s; melhor = r; }
+      }
+      if (melhor) { usados.add(melhor.id); feitos.set(ii, melhor); }
+    });
+    const pares = [], semLanc = [];
+    itens.forEach((it, ii) => {
+      const r = feitos.get(ii);
+      if (!r) { semLanc.push(it); return; }
+      const div = [];
+      if ((+r.quantidade || 1) !== it.quantidade) div.push(`quantidade: na guia ${r.quantidade || 1}, no repasse ${it.quantidade}`);
+      if (r.data !== it.data) div.push(`data: na guia ${r.data.split('-').reverse().join('/')}, no repasse ${it.data.split('-').reverse().join('/')}`);
+      if (r.atendimento !== it.atendimento) div.push(`atendimento: na guia ${r.atendimento || '—'}, no repasse ${it.atendimento}`);
+      pares.push({ linha: r, item: it, divergencias: div });
+    });
+    const pendentes = linhas.filter(r => !usados.has(r.id));
+    return { pares, semLanc, pendentes };
+  }
+
+  // ---- valores fora do padrão ----
+  // historico: todos os itens já importados; alvo: itens a verificar. Compara valor por unidade
+  // com a mediana do mesmo procedimento no mesmo convênio (mín. 3 pagamentos anteriores).
+  const chaveProc = it => toks(it.procedimento).join(' ');
+  const chaveConv = it => norm(it.convenio).split(' ').slice(0, 2).join(' ');
+  const idItem = it => [it.atendimento, it.data, norm(it.procedimento), it.valor].join('|');
+  function mediana(v) { const a = [...v].sort((x, y) => x - y), m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
+  function atipicos(alvo, historico, limite = .25) {
+    const unid = it => it.valor / (it.quantidade || 1);
+    const grupos = new Map();
+    for (const h of historico) {
+      for (const k of [chaveProc(h) + '#' + chaveConv(h), chaveProc(h) + '#*']) {
+        if (!grupos.has(k)) grupos.set(k, []);
+        grupos.get(k).push(h);
+      }
+    }
+    const out = [];
+    for (const it of alvo) {
+      const eu = idItem(it);
+      let base = (grupos.get(chaveProc(it) + '#' + chaveConv(it)) || []).filter(h => idItem(h) !== eu);
+      let mesmoConv = true;
+      if (base.length < 3) continue; // poucos pagamentos desse procedimento nesse convênio para comparar
+      const med = mediana(base.map(unid));
+      if (!med) continue;
+      const dif = unid(it) / med - 1;
+      if (Math.abs(dif) > (mesmoConv ? limite : limite * 1.6)) out.push({ item: it, id: eu, mediana: med, amostras: base.length, mesmoConv, dif });
+    }
+    return out.sort((a, b) => Math.abs(b.dif) - Math.abs(a.dif));
+  }
+
+  return { ler, cruzar, atipicos, idItem, mesmoMedico, semelhanca, norm };
+})();
+if (typeof module !== 'undefined') module.exports = Repasse;
+
 </script>
 <script>
 'use strict';
-const VERSAO = '1.1.0';
+const VERSAO = '1.3.0';
 const EXPERT_TXT = "Você é um assistente que transcreve guias de honorário médico-odontológicas para uma tabela. Eu vou enviar uma ou mais FOTOS (ou PDFs) de guias. Para cada foto, leia com atenção e devolva os dados no formato abaixo.\n\nFORMATO DE RESPOSTA (obrigatório):\n- Responda SOMENTE com um bloco de código, sem nenhum texto antes ou depois.\n- Uma linha por PROCEDIMENTO (se a guia tiver 3 procedimentos, são 3 linhas, repetindo paciente e atendimento).\n- Campos separados por \" | \" exatamente nesta ordem:\nPACIENTE | ATENDIMENTO | GRAU | CÓDIGO | PROCEDIMENTO | DATA | QTD\n\nExemplo:\n```\nMaria da Silva Souza | 10476625 | 0 | 10102019 | Visita hospitalar (paciente internado) | 13/10/2026 | 1\n```\n\nEXISTEM DOIS MODELOS DE FOLHA:\n\n1) \"GUIA DE HONORÁRIO INDIVIDUAL\" (Levmed). A foto pode estar deitada; leia mesmo assim.\n- PACIENTE: campo \"8 - Nome\" (dados do beneficiário). NÃO use o nome do profissional executante (campos 14 e 18).\n- ATENDIMENTO: número no canto superior direito, ao lado de \"Atend.:\". Só os dígitos, sem pontos.\n- GRAU: campo \"17 - Grau Part.\" (0 = cirurgião principal, 1 = primeiro auxiliar, 2 = segundo auxiliar). Se estiver em branco, use 0.\n- CÓDIGO: campo \"27 - Código do Procedimento\" (8 dígitos) de cada linha da tabela \"Procedimentos Realizados\".\n- PROCEDIMENTO: campo \"28 - Descrição\" da mesma linha.\n- DATA: campo \"23 - Data\" da mesma linha, no formato dd/mm/aaaa. Não use a data de \"Impresso em\" nem a validade da carteira.\n- QTD: campo \"29 - Qtde.\" da mesma linha (quantidade, ex.: 1 ou 2). Se estiver em branco, use 1.\n\n2) \"HDH - Procedimentos/Exames\" (Hospital Dona Helena).\n- PACIENTE: campo \"Nome\".\n- ATENDIMENTO: campo \"Atendimento\". Só os dígitos, sem pontos (ex.: 10.496.400 vira 10496400).\n- GRAU: essa folha não tem grau; use 0.\n- CÓDIGO e PROCEDIMENTO: estão ESCRITOS À MÃO pelo profissional na parte de baixo da folha. Transcreva o código (8 dígitos) e o nome do procedimento escritos à mão. Abreviações comuns: \"EME\" ou \"EMG\" = emergência.\n- DATA: a data da linha \"Registro / Profissional\" (ex.: 23/10/2026). Se não houver, use a \"Data Entrada\".\n- QTD: se houver quantidade escrita à mão junto do código, use-a; se não, use 1.\n\nREGRAS:\n- Nunca invente dados. Se não conseguir ler um campo com segurança, escreva ? no lugar dele.\n- Não inclua endereço, telefone, data de nascimento ou outros dados do paciente: só os 7 campos pedidos.\n- Se eu enviar várias fotos, junte todas as linhas no mesmo bloco de código.\n";
 const GRAUS = { '0': 'Principal', '1': '1º auxiliar', '2': '2º auxiliar', '3': '3º auxiliar' };
 const CDN = {
@@ -551,7 +777,7 @@ const Local = {
 };
 
 // ---------- estado ----------
-let S = { rows: [], codigos: {}, cfg: { grauPadrao: '0', nomeProf: 'Tiago Stangarlin Forgiarini', atualizadoEm: '' } };
+let S = { rows: [], codigos: {}, repasses: {}, cfg: { grauPadrao: '0', nomeProf: 'Tiago Stangarlin Forgiarini', atualizadoEm: '' } };
 let GH = { owner: '', repo: '', token: '', ultimo: '', erro: '' };
 const vivos = () => S.rows.filter(r => !r.removido);
 
@@ -627,9 +853,11 @@ function mesclar(loc, rem) {
   const cods = { ...(rem.codigos || {}) };
   for (const [c, x] of Object.entries(loc.codigos)) if (!cods[c] || (x.atualizadoEm || '') > (cods[c].atualizadoEm || '')) cods[c] = x;
   const cfg = (rem.cfg && (rem.cfg.atualizadoEm || '') > (loc.cfg.atualizadoEm || '')) ? { ...loc.cfg, ...rem.cfg } : loc.cfg;
-  return { rows: [...porId.values()], codigos: cods, cfg };
+  const reps = { ...(rem.repasses || {}) };
+  for (const [k, x] of Object.entries(loc.repasses || {})) if (!reps[k] || (x.atualizadoEm || '') > (reps[k].atualizadoEm || '')) reps[k] = x;
+  return { rows: [...porId.values()], codigos: cods, repasses: reps, cfg };
 }
-const assinatura = d => JSON.stringify([d.rows.map(r => r.id + r.atualizadoEm).sort(), Object.entries(d.codigos || {}).map(([c, x]) => c + x.atualizadoEm).sort(), d.cfg && d.cfg.atualizadoEm]);
+const assinatura = d => JSON.stringify([d.rows.map(r => r.id + r.atualizadoEm).sort(), Object.entries(d.codigos || {}).map(([c, x]) => c + x.atualizadoEm).sort(), Object.entries(d.repasses || {}).map(([c, x]) => c + x.atualizadoEm).sort(), d.cfg && d.cfg.atualizadoEm]);
 let syncTimer = null, sincronizando = false, syncDeNovo = false;
 function agendarSync(ms = 2500) { if (!ghOk()) { pill(); return; } clearTimeout(syncTimer); syncTimer = setTimeout(sincronizar, ms); pill('busy', 'Salvando…'); }
 async function sincronizar() {
@@ -972,17 +1200,46 @@ $('#viewerImg').onclick = () => $('#viewer').classList.toggle('zoom');
 $('#viewerX').onclick = () => $('#viewer').classList.remove('on');
 
 // ---------- tabela ----------
-let filtro = { busca: '', mes: '', grau: '' };
+let filtro = { busca: '', mes: '', grau: '', status: '' };
+// ---------- conciliação com os repasses ----------
+let CONC = { porLinha: new Map(), semLanc: [], pendentes: [], anteriores: [], inicio: '' };
+const reaisFmt = v => (+v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+function repassesVivos() { return Object.values(S.repasses || {}).filter(x => !x.removido).sort((a, b) => (b.fim || '').localeCompare(a.fim || '') || (b.numero || '').localeCompare(a.numero || '')); }
+// início do controle: 1º dia do mês da guia mais antiga da tabela (ou a data escolhida em Ajustes)
+function inicioControle() {
+  if (S.cfg.inicioControle) return S.cfg.inicioControle;
+  const datas = vivos().filter(r => !/^Repasse/.test(r.origem || '')).map(r => r.data).filter(Boolean).sort();
+  return datas.length ? datas[0].slice(0, 7) + '-01' : '';
+}
+function conciliar() {
+  const itens = [], anteriores = [];
+  const inicio = inicioControle();
+  for (const rp of repassesVivos()) for (const it of rp.itens || []) (inicio && it.data < inicio ? anteriores : itens).push({ ...it, repasse: rp.numero });
+  const linhas = vivos().filter(r => !r.pagoManual);
+  const res = Repasse.cruzar(linhas, itens);
+  const porLinha = new Map();
+  for (const p of res.pares) porLinha.set(p.linha.id, p);
+  CONC = { porLinha, semLanc: res.semLanc, pendentes: res.pendentes, anteriores, inicio };
+}
+function statusDe(r) {
+  if (r.pagoManual) return { tipo: 'pago', txt: '✓ pago', manual: true };
+  const p = CONC.porLinha.get(r.id);
+  if (!p) return { tipo: 'pend', txt: 'pendente' };
+  return { tipo: p.divergencias.length ? 'div' : 'pago', txt: '✓ ' + reaisFmt(p.item.valor), par: p };
+}
 function filtradas() {
   const b = filtro.busca.trim().toLowerCase();
   const bd = b.replace(/\D/g, '');
   return vivos().filter(r =>
     (!filtro.mes || (r.data || '').startsWith(filtro.mes)) &&
     (filtro.grau === '' || r.grau === filtro.grau) &&
+    (!filtro.status || (filtro.status === 'pago' ? statusDe(r).tipo !== 'pend' : statusDe(r).tipo === 'pend')) &&
     (!b || (r.paciente || '').toLowerCase().includes(b) || (r.procedimento || '').toLowerCase().includes(b) || (bd && ((r.codigo || '').includes(bd) || (r.atendimento || '').includes(bd))))
   ).sort((a, b) => (b.data || '').localeCompare(a.data || '') || (a.paciente || '').localeCompare(b.paciente || ''));
 }
 function render() {
+  conciliar();
+  if ($('#v-rep').classList.contains('on')) renderRepasse();
   const meses = [...new Set(vivos().map(r => (r.data || '').slice(0, 7)).filter(Boolean))].sort().reverse();
   if (filtro.mes && !meses.includes(filtro.mes)) filtro.mes = '';
   $('#fMes').innerHTML = `<option value="">Todos os meses</option>` + meses.map(m => `<option value="${m}" ${m === filtro.mes ? 'selected' : ''}>${nomeMes(m)}</option>`).join('');
@@ -997,15 +1254,146 @@ function render() {
   let html = '', mesAtual = null;
   for (const r of lista) {
     const m = (r.data || '').slice(0, 7);
-    if (!filtro.mes && m !== mesAtual) { mesAtual = m; html += `<tr class="mes"><td colspan="7">${m ? nomeMes(m) : 'Sem data'}</td></tr>`; }
-    html += `<tr data-id="${r.id}"><td>${esc(br(r.data).slice(0, 6) + br(r.data).slice(8))}</td><td class="pac">${esc(r.paciente)}</td><td>${esc(r.atendimento)}</td><td><span class="badge g${esc(r.grau)}">${esc(r.grau)}</span></td><td>${esc(r.codigo)}</td><td style="text-align:center">${esc(r.quantidade || '1')}</td><td class="proc">${esc(r.procedimento)}</td></tr>`;
+    if (!filtro.mes && m !== mesAtual) { mesAtual = m; html += `<tr class="mes"><td colspan="8">${m ? nomeMes(m) : 'Sem data'}</td></tr>`; }
+    html += `<tr data-id="${r.id}"><td>${esc(br(r.data).slice(0, 6) + br(r.data).slice(8))}</td><td class="pac">${esc(r.paciente)}</td><td>${esc(r.atendimento)}</td><td><span class="badge g${esc(r.grau)}">${esc(r.grau)}</span></td><td>${esc(r.codigo)}</td><td style="text-align:center">${esc(r.quantidade || '1')}</td><td class="proc">${esc(r.procedimento)}</td><td>${(st => `<span class="st ${st.tipo}">${esc(st.txt)}</span>`)(statusDe(r))}</td></tr>`;
   }
-  $('#tabela').innerHTML = `<div class="dica">deslize a tabela para o lado →</div><div class="tablewrap"><table><thead><tr><th>Data</th><th>Paciente</th><th>Atend.</th><th>Grau</th><th>Código</th><th>Qtd</th><th>Procedimento</th></tr></thead><tbody>${html}</tbody></table></div>`;
+  $('#tabela').innerHTML = `<div class="dica">deslize a tabela para o lado →</div><div class="tablewrap"><table><thead><tr><th>Data</th><th>Paciente</th><th>Atend.</th><th>Grau</th><th>Código</th><th>Qtd</th><th>Procedimento</th><th>Repasse</th></tr></thead><tbody>${html}</tbody></table></div>`;
 }
 $('#busca').addEventListener('input', e => { filtro.busca = e.target.value; render(); });
 $('#fMes').addEventListener('change', e => { filtro.mes = e.target.value; render(); });
+$('#fStatus').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; filtro.status = b.dataset.s; document.querySelectorAll('#fStatus .chip').forEach(c => c.classList.toggle('on', c === b)); render(); });
 $('#fGrau').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; filtro.grau = b.dataset.g; document.querySelectorAll('#fGrau .chip').forEach(c => c.classList.toggle('on', c === b)); render(); });
 $('#tabela').addEventListener('click', e => { const tr = e.target.closest('tr[data-id]'); if (tr) editar(tr.dataset.id); });
+
+// ---------- tela Repasse ----------
+let repSel = '';
+async function textoPosicionadoPDF(arq) {
+  await carregarScript(CDN.pdf);
+  pdfjsLib.GlobalWorkerOptions.workerSrc = CDN.pdfw;
+  const pdf = await pdfjsLib.getDocument({ data: await arq.arrayBuffer() }).promise;
+  const pags = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const tc = await (await pdf.getPage(i)).getTextContent();
+    pags.push(tc.items.filter(t => t.str && t.str.trim()).map(t => ({ s: t.str, x: t.transform[4], y: t.transform[5], w: t.width })));
+  }
+  return pags;
+}
+$('#btRepPdf').onclick = () => $('#repArq').click();
+$('#repArq').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  toast('Lendo o repasse…', 8000);
+  try {
+    const { meta, itens } = Repasse.ler(await textoPosicionadoPDF(f));
+    clearTimeout(toast._t); $('#toast').classList.remove('on');
+    if (!itens.length) throw new Error('Não encontrei procedimentos nesse PDF. Ele é o relatório "Repasse à Terceiros"?');
+    const medicos = [...new Set(itens.map(i => i.medico))];
+    let medico = medicos.find(m => Repasse.mesmoMedico(m, S.cfg.nomeProf || '')) || '';
+    if (!medico) medico = await escolherMedico(medicos);
+    if (!medico) return;
+    const meus = itens.filter(i => i.medico === medico).map(({ medicoSecao, medico: _m, ...x }) => x);
+    const ini = inicioControle();
+    if (!ini) { toast('Lance pelo menos uma guia na tabela antes de conferir um repasse.', 4500); return; }
+    const noPeriodo = meus.filter(i => i.data >= ini).length;
+    const numero = meta.numero || ('sem-numero-' + Date.now());
+    const ja = S.repasses[numero] && !S.repasses[numero].removido;
+    S.repasses[numero] = { numero, inicio: meta.inicio, fim: meta.fim, terceiro: meta.terceiro, medico, total: +meus.reduce((a, b) => a + b.valor, 0).toFixed(2), qtd: meus.length, itens: meus, importadoEm: agora(), atualizadoEm: agora() };
+    repSel = numero;
+    await salvarLocal(); conciliar(); render(); renderRepasse();
+    if (!noPeriodo) {
+      abrirModal(`<h3>Nada para conferir</h3><div class="note info">Todos os ${meus.length} procedimentos deste repasse (${esc(numero)}) são de antes de ${br(ini)}, quando começou o controle no app. Nenhum deles entra na conferência.<br><br>Guardei só os <b>valores</b>, para o app aprender quanto costuma ser pago por cada procedimento e apontar valores fora do padrão nos próximos repasses.</div><button class="btn block" style="margin-top:12px" id="mOk">Entendi</button>`);
+      $('#mOk').onclick = fecharModal;
+    } else toast(ja ? `Repasse ${numero} atualizado` : `Repasse ${numero} importado: ${meus.length} procedimentos seus`, 3500);
+  } catch (x) { toast(x.message || 'Não consegui ler esse PDF.', 4500); }
+};
+function escolherMedico(medicos) {
+  return new Promise(ok => {
+    abrirModal(`<h3>Qual é o seu nome no repasse?</h3><div class="small muted">Não achei "${esc(S.cfg.nomeProf || '')}" no relatório. Escolha:</div>
+      ${medicos.map((m, i) => `<button class="btn ghost block" style="margin-top:8px" data-m="${i}">${esc(m)}</button>`).join('')}
+      <button class="btn danger block" style="margin-top:12px" data-m="-1">Cancelar</button>`);
+    $('#modalBody').onclick = e => { const b = e.target.closest('[data-m]'); if (!b) return; $('#modalBody').onclick = null; fecharModal(); ok(+b.dataset.m >= 0 ? medicos[+b.dataset.m] : ''); };
+  });
+}
+function valoresAtipicos(rp) {
+  const hist = [];
+  for (const x of repassesVivos()) for (const it of x.itens || []) hist.push(it);
+  const ini = inicioControle();
+  const alvo = (rp.itens || []).filter(it => !ini || it.data >= ini);
+  const ok = new Set(rp.valoresOk || []);
+  return Repasse.atipicos(alvo, hist).filter(a => !ok.has(a.id));
+}
+$('#repAtual').addEventListener('click', async e => {
+  const b = e.target.closest('[data-okval]'); if (!b) return;
+  const rp = S.repasses[repSel]; if (!rp) return;
+  rp.valoresOk = [...new Set([...(rp.valoresOk || []), b.dataset.okval])]; rp.atualizadoEm = agora();
+  await salvarLocal(); renderRepasse(); toast('Ok, não aparece mais.');
+});
+const linhaItem = (d, pac, proc, v, extra = '') => `<div><div style="min-width:0"><div><b>${esc(pac)}</b></div><div class="d">${esc(d)} · ${esc(proc)}</div>${extra}</div><div class="v">${v}</div></div>`;
+function renderRepasse() {
+  const reps = repassesVivos();
+  // pendentes (todas as guias que ainda não apareceram em nenhum repasse)
+  const pend = CONC.pendentes.slice().sort((a, b) => (a.data || '').localeCompare(b.data || ''));
+  const hoje = Date.now();
+  $('#repPend').innerHTML = !vivos().length ? '' : `<div class="card"><h3>Ainda não pagos</h3>
+    <div class="small muted">Procedimentos da tabela que não apareceram em nenhum repasse importado${reps.length ? '' : ' (importe um repasse para começar)'}.</div>
+    <div class="resumo"><div><b style="color:var(--warn)">${pend.length}</b><span>pendentes</span></div><div><b>${vivos().length - pend.length}</b><span>pagos</span></div></div>
+    ${pend.length ? `<details class="sec"><summary><span>Ver pendentes</span><span class="muted">▾</span></summary><div class="lista-rep">${pend.map(r => linhaItem(br(r.data), r.paciente, `${r.codigo || '—'} ${r.procedimento}`, `${Math.floor((hoje - new Date(r.data + 'T12:00')) / 864e5)} dias`, `<div class="d">Atend. ${esc(r.atendimento)} · grau ${esc(r.grau)}</div>`)).join('')}</div></details>` : ''}
+    <button class="btn sec block" style="margin-top:10px" id="btRelConf">Exportar relatório da conferência</button></div>`;
+  if ($('#btRelConf')) $('#btRelConf').onclick = exportarConferencia;
+  // repasse selecionado
+  if (!reps.length) { $('#repAtual').innerHTML = ''; $('#repHist').innerHTML = ''; return; }
+  if (!repSel || !reps.find(x => x.numero === repSel)) repSel = reps[0].numero;
+  const rp = reps.find(x => x.numero === repSel);
+  const pares = [...CONC.porLinha.values()].filter(p => p.item.repasse === rp.numero);
+  const ok = pares.filter(p => !p.divergencias.length), div = pares.filter(p => p.divergencias.length);
+  const sem = CONC.semLanc.filter(i => i.repasse === rp.numero);
+  const ant = CONC.anteriores.filter(i => i.repasse === rp.numero);
+  const atip = valoresAtipicos(rp);
+  const soma = l => reaisFmt(l.reduce((a, b) => a + (b.item ? b.item.valor : b.valor), 0));
+  $('#repAtual').innerHTML = `<div class="card"><h3>Repasse ${esc(rp.numero)}</h3>
+    <div class="small muted">Período ${br(rp.inicio)} a ${br(rp.fim)} · ${esc(rp.medico)}</div>
+    <div class="resumo"><div><b>${rp.qtd}</b><span>procedimentos seus</span></div><div><b>${reaisFmt(rp.total)}</b><span>total do repasse</span></div></div>
+    ${ant.length ? `<div class="note info">${ant.length} procedimento${ant.length > 1 ? 's são' : ' é'} de antes de ${br(CONC.inicio)} (início do controle) e não ${ant.length > 1 ? 'entram' : 'entra'} na conferência.</div>` : ''}
+    ${(ant.length < rp.qtd || atip.length) ? `<details class="sec" ${atip.length ? 'open' : ''}><summary><span>🔎 Valores fora do padrão (${atip.length})</span><span class="muted">${atip.length ? '' : 'nenhum'}</span></summary>
+      <div class="small muted" style="margin:6px 0">Valor por unidade comparado com o que costuma ser pago pelo mesmo procedimento no mesmo convênio, nos repasses já importados. São alertas para conferir: o valor muda com o grau de participação e quando há vários procedimentos na mesma cirurgia.</div>
+      <div class="lista-rep">${atip.map(a => linhaItem(br(a.item.data), a.item.paciente, `${a.item.procedimento} (${a.item.convenio})`, `${reaisFmt(a.item.valor)}<div class="d" style="color:${a.dif < 0 ? 'var(--bad)' : 'var(--warn)'}">${a.dif > 0 ? '+' : ''}${Math.round(a.dif * 100)}%</div>`, `<div class="d">Normalmente ${reaisFmt(a.mediana)}${a.item.quantidade > 1 ? ' por unidade (qtd ' + a.item.quantidade + ')' : ''} · ${a.amostras} pagamento${a.amostras > 1 ? 's' : ''}${a.mesmoConv ? '' : ' em outros convênios'}</div><button class="btn ghost" style="min-height:28px;padding:2px 10px;font-size:12px;margin-top:4px" data-okval="${esc(a.id)}">Está certo</button>`)).join('') || '<div class="muted">Nenhum valor fora do padrão.</div>'}</div></details>` : ''}
+    <details class="sec" ${div.length ? 'open' : ''}><summary><span>⚠️ Com diferença (${div.length})</span><span class="muted">${soma(div)}</span></summary><div class="lista-rep">${div.map(p => linhaItem(br(p.item.data), p.linha.paciente, p.item.procedimento, reaisFmt(p.item.valor), `<div class="d" style="color:var(--bad)">${esc(p.divergencias.join('; '))}</div>`)).join('') || '<div class="muted">Nenhuma.</div>'}</div></details>
+    <details class="sec"><summary><span>✅ Conferidos com a tabela (${ok.length})</span><span class="muted">${soma(ok)}</span></summary><div class="lista-rep">${ok.map(p => linhaItem(br(p.item.data), p.linha.paciente, p.item.procedimento, reaisFmt(p.item.valor))).join('') || '<div class="muted">Nenhum.</div>'}</div></details>
+    <details class="sec"><summary><span>➕ Pagos, mas sem guia na tabela (${sem.length})</span><span class="muted">${soma(sem)}</span></summary>
+      <div class="small muted" style="margin:6px 0">Estão no repasse, a partir de ${br(CONC.inicio)}, mas não na tabela (guia não lançada, ou lançada com nº de atendimento diferente).</div>
+      <div class="lista-rep">${sem.map(i => linhaItem(br(i.data), i.paciente, `${i.procedimento} (${i.convenio})`, reaisFmt(i.valor), `<div class="d">Atend. ${esc(i.atendimento)} · qtd ${i.quantidade}</div>`)).join('') || '<div class="muted">Nenhum.</div>'}</div>
+      ${sem.length ? `<button class="btn ghost block" style="margin-top:8px" id="btAddSem">Adicionar estes ${sem.length} à tabela</button>` : ''}</details>
+  </div>`;
+  if ($('#btAddSem')) $('#btAddSem').onclick = async () => {
+    const b = $('#btAddSem'); if (!b.dataset.c) { b.dataset.c = 1; b.textContent = `Confirmar: adicionar ${sem.length} linhas sem código`; return; }
+    for (const i of sem) S.rows.push({ id: uid(), paciente: i.paciente, atendimento: i.atendimento, grau: S.cfg.grauPadrao || '0', codigo: codigoDaDesc(i.procedimento) || '', procedimento: i.procedimento, quantidade: String(i.quantidade || 1), data: i.data, origem: 'Repasse ' + rp.numero, criadoEm: agora(), atualizadoEm: agora() });
+    await salvarLocal(); render(); renderRepasse(); toast(`${sem.length} procedimentos adicionados ✓`);
+  };
+  $('#repHist').innerHTML = `<h2>Repasses importados</h2><div class="card lista-rep">${reps.map(x => `<div data-rep="${esc(x.numero)}" style="cursor:pointer"><div><b>${esc(x.numero)}</b> ${x.numero === repSel ? '<span class="st pago">aberto</span>' : ''}<div class="d">${br(x.inicio)} a ${br(x.fim)} · ${x.qtd} proc.</div></div><div class="v">${reaisFmt(x.total)}<div class="d"><button class="btn ghost" style="min-height:28px;padding:2px 8px;font-size:12px" data-delrep="${esc(x.numero)}">remover</button></div></div></div>`).join('')}</div>`;
+}
+$('#repHist').addEventListener('click', async e => {
+  const d = e.target.closest('[data-delrep]');
+  if (d) {
+    if (!d.dataset.c) { d.dataset.c = 1; d.textContent = 'confirmar'; return; }
+    const x = S.repasses[d.dataset.delrep]; x.removido = true; x.itens = []; x.atualizadoEm = agora();
+    await salvarLocal(); render(); renderRepasse(); return;
+  }
+  const r = e.target.closest('[data-rep]'); if (r) { repSel = r.dataset.rep; renderRepasse(); window.scrollTo(0, 0); }
+});
+async function exportarConferencia() {
+  try {
+    await carregarScript(CDN.xlsx);
+    const wb = XLSX.utils.book_new();
+    const add = (nome, linhas) => { const ws = XLSX.utils.json_to_sheet(linhas.length ? linhas : [{ '': 'Nenhum' }]); ws['!cols'] = Object.keys(linhas[0] || { a: 1 }).map(k => ({ wch: /Proced/.test(k) ? 44 : /Paciente/.test(k) ? 30 : 14 })); XLSX.utils.book_append_sheet(wb, ws, nome); };
+    add('Pendentes', CONC.pendentes.slice().sort((a, b) => (a.data || '').localeCompare(b.data || '')).map(r => ({ Data: br(r.data), Paciente: r.paciente, 'Nº Atendimento': r.atendimento, Grau: +r.grau, Código: r.codigo, Quantidade: +(r.quantidade || 1), Procedimento: r.procedimento })));
+    const pares = [...CONC.porLinha.values()];
+    add('Com diferença', pares.filter(p => p.divergencias.length).map(p => ({ 'Nº Repasse': p.item.repasse, Data: br(p.item.data), Paciente: p.linha.paciente, 'Nº Atendimento': p.item.atendimento, 'Procedimento (repasse)': p.item.procedimento, 'Valor recebido': p.item.valor, Diferença: p.divergencias.join('; ') })));
+    add('Pagos sem guia', CONC.semLanc.map(i => ({ 'Nº Repasse': i.repasse, Data: br(i.data), Paciente: i.paciente, 'Nº Atendimento': i.atendimento, Convênio: i.convenio, Procedimento: i.procedimento, Quantidade: i.quantidade, Valor: i.valor })));
+    add('Valores fora do padrão', repassesVivos().flatMap(rp => valoresAtipicos(rp).map(a => ({ 'Nº Repasse': rp.numero, Data: br(a.item.data), Paciente: a.item.paciente, 'Nº Atendimento': a.item.atendimento, Convênio: a.item.convenio, Procedimento: a.item.procedimento, Quantidade: a.item.quantidade, 'Valor pago': a.item.valor, 'Valor normal (por unidade)': +a.mediana.toFixed(2), 'Diferença %': Math.round(a.dif * 100), Base: `${a.amostras} pagamentos${a.mesmoConv ? '' : ' (outros convênios)'}` }))));
+    add('Conferidos', pares.filter(p => !p.divergencias.length).map(p => ({ 'Nº Repasse': p.item.repasse, Data: br(p.item.data), Paciente: p.linha.paciente, 'Nº Atendimento': p.item.atendimento, Código: p.linha.codigo, Procedimento: p.linha.procedimento, Quantidade: p.item.quantidade, 'Valor recebido': p.item.valor })));
+    const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    await entregarArquivo(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `conferencia_repasse_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  } catch (e) { toast('Não consegui gerar a planilha (sem internet?).'); }
+}
 
 // ---------- editar linha ----------
 function abrirModal(html) { $('#modalBody').innerHTML = html; $('#modal').classList.add('on'); }
@@ -1021,11 +1409,14 @@ function editar(id) {
     <select class="i" id="eG">${['0', '1', '2'].map(v => `<option value="${v}" ${r.grau === v ? 'selected' : ''}>${v} · ${GRAUS[v]}</option>`).join('')}</select>
     <div class="grid2"><div><label class="f">Código</label><input class="i" id="eC" inputmode="numeric" list="dlCodigos" value="${esc(r.codigo)}"></div><div><label class="f">Quantidade</label><input class="i" id="eQ" inputmode="numeric" value="${esc(r.quantidade || '1')}"></div></div>
     <label class="f">Procedimento</label><input class="i" id="eX" list="dlProcs" value="${esc(r.procedimento)}">
+    ${(st => st.par ? `<div class="note ${st.tipo === 'div' ? 'bad' : 'ok'}">Pago no repasse ${esc(st.par.item.repasse)}: ${reaisFmt(st.par.item.valor)} (qtd ${st.par.item.quantidade})${st.par.divergencias.length ? '<br>⚠️ Diferença — ' + esc(st.par.divergencias.join('; ')) : ''}</div>` : st.manual ? `<div class="note ok">Marcado como pago manualmente.</div>` : `<div class="note warn">Ainda não apareceu em nenhum repasse importado.</div>`)(statusDe(r))}
+    ${!CONC.porLinha.get(r.id) ? `<button class="btn ghost block" style="margin-top:8px;min-height:40px" id="eMan">${r.pagoManual ? 'Desmarcar pagamento manual' : 'Marcar como pago (recebido por fora)'}</button>` : ''}
     <div class="small muted" style="margin-top:8px">Origem: ${esc(r.origem || '—')} · lançado em ${new Date(r.criadoEm).toLocaleDateString('pt-BR')}</div>
     <div class="row" style="margin-top:14px"><button class="btn danger" id="eDel" style="flex:1">Excluir</button><button class="btn" id="eOk" style="flex:2">Salvar</button></div>
     <button class="btn ghost block" style="margin-top:8px" id="eCancel">Cancelar</button>`);
   $('#eC').oninput = () => { const d = descDoCodigo($('#eC').value); if (d) $('#eX').value = d; };
   $('#eCancel').onclick = fecharModal;
+  if ($('#eMan')) $('#eMan').onclick = async () => { r.pagoManual = !r.pagoManual; r.atualizadoEm = agora(); await salvarLocal(); render(); fecharModal(); toast(r.pagoManual ? 'Marcado como pago' : 'Voltou para pendente'); };
   $('#eOk').onclick = async () => {
     Object.assign(r, { paciente: $('#eP').value.trim(), atendimento: $('#eA').value.replace(/\D/g, ''), data: $('#eD').value, grau: $('#eG').value, codigo: $('#eC').value.replace(/\D/g, ''), quantidade: String(+$('#eQ').value.replace(/\D/g, '') || 1), procedimento: $('#eX').value.trim(), atualizadoEm: agora() });
     aprender(r.codigo, r.procedimento); atualizarDatalists();
@@ -1041,7 +1432,7 @@ function editar(id) {
 
 // ---------- exportar ----------
 function linhasExport() {
-  return filtradas().slice().reverse().map(r => ({ Data: br(r.data), Paciente: r.paciente, 'Nº Atendimento': r.atendimento, Grau: +r.grau, Participação: GRAUS[r.grau] || '', Código: r.codigo, Quantidade: +(r.quantidade || 1), Procedimento: r.procedimento }));
+  return filtradas().slice().reverse().map(r => ({ Data: br(r.data), Paciente: r.paciente, 'Nº Atendimento': r.atendimento, Grau: +r.grau, Participação: GRAUS[r.grau] || '', Código: r.codigo, Quantidade: +(r.quantidade || 1), Procedimento: r.procedimento, ...(st => ({ Situação: st.tipo === 'pend' ? 'Pendente' : st.manual ? 'Pago (manual)' : st.tipo === 'div' ? 'Pago com diferença' : 'Pago', 'Nº Repasse': st.par ? st.par.item.repasse : '', 'Valor recebido': st.par ? st.par.item.valor : '' }))(statusDe(r)) }));
 }
 async function entregarArquivo(blob, nome) {
   const arq = new File([blob], nome, { type: blob.type });
@@ -1057,7 +1448,7 @@ $('#btExport').onclick = async () => {
   try {
     await carregarScript(CDN.xlsx);
     const ws = XLSX.utils.json_to_sheet(dados);
-    ws['!cols'] = [{ wch: 11 }, { wch: 32 }, { wch: 14 }, { wch: 6 }, { wch: 13 }, { wch: 11 }, { wch: 11 }, { wch: 44 }];
+    ws['!cols'] = [{ wch: 11 }, { wch: 32 }, { wch: 14 }, { wch: 6 }, { wch: 13 }, { wch: 11 }, { wch: 11 }, { wch: 44 }, { wch: 18 }, { wch: 11 }, { wch: 14 }];
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Honorários');
     const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     await entregarArquivo(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `honorarios_${sufixo}.xlsx`);
@@ -1079,12 +1470,15 @@ function renderCfg() {
   $('#ghOwner').value = GH.owner; $('#ghRepo').value = GH.repo; $('#ghToken').value = GH.token;
   document.querySelectorAll('#cfgGrau button').forEach(b => b.classList.toggle('on', b.dataset.g === S.cfg.grauPadrao));
   $('#cfgNome').value = S.cfg.nomeProf || '';
+  $('#cfgInicio').value = inicioControle();
+  $('#cfgInicioTxt').textContent = S.cfg.inicioControle ? 'Data escolhida por você. Apague o campo para voltar ao automático.' : 'Automático: 1º dia do mês da guia mais antiga da tabela. Procedimentos do repasse antes dessa data são ignorados.';
   const cs = Object.entries(S.codigos).filter(([, x]) => !x.removido).sort((a, b) => a[1].desc.localeCompare(b[1].desc));
   $('#learnList').innerHTML = cs.length ? cs.map(([c, x]) => `<div><span><b>${esc(c)}</b> · ${esc(x.desc)}</span><button data-esq="${esc(c)}">Esquecer</button></div>`).join('') : '<div class="muted">Nenhum ainda.</div>';
   renderGhStatus();
 }
 $('#learnList').addEventListener('click', async e => { const c = e.target.dataset.esq; if (!c) return; S.codigos[c] = { ...S.codigos[c], removido: true, atualizadoEm: agora() }; await salvarLocal(); atualizarDatalists(); renderCfg(); });
 $('#cfgGrau').addEventListener('click', async e => { const b = e.target.closest('button'); if (!b) return; S.cfg.grauPadrao = b.dataset.g; S.cfg.atualizadoEm = agora(); await salvarLocal(); renderCfg(); });
+$('#cfgInicio').addEventListener('change', async e => { S.cfg.inicioControle = e.target.value || ''; S.cfg.atualizadoEm = agora(); await salvarLocal(); conciliar(); renderCfg(); render(); });
 $('#cfgNome').addEventListener('change', async e => { S.cfg.nomeProf = e.target.value.trim(); S.cfg.atualizadoEm = agora(); await salvarLocal(); });
 $('#btGhSalvar').onclick = async () => {
   GH.owner = $('#ghOwner').value.trim().replace(/^@/, '').replace(/^https?:\/\/github\.com\//, '').split('/')[0];
@@ -1125,6 +1519,7 @@ function mostrar(v) {
   document.querySelectorAll('.view').forEach(s => s.classList.toggle('on', s.id === v));
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   if (v === 'v-cfg') renderCfg();
+  if (v === 'v-rep') { conciliar(); renderRepasse(); }
   window.scrollTo(0, 0);
 }
 document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => mostrar(b.dataset.v));
@@ -1136,7 +1531,7 @@ async function pedirPersistencia() { try { if (navigator.storage && navigator.st
   $('#expertTxt').textContent = EXPERT_TXT;
   $('#versao').textContent = 'Honorários · versão ' + VERSAO;
   const est = await Local.get('estado');
-  if (est && Array.isArray(est.rows)) S = { ...S, ...est, cfg: { ...S.cfg, ...(est.cfg || {}) } };
+  if (est && Array.isArray(est.rows)) S = { ...S, ...est, repasses: est.repasses || {}, cfg: { ...S.cfg, ...(est.cfg || {}) } };
   const gh = await Local.get('gh'); if (gh) GH = { ...GH, ...gh };
   atualizarDatalists(); render(); pill();
   if (ghOk()) sincronizar();
