@@ -1,15 +1,24 @@
 {
-  "name": "Honorários",
-  "short_name": "Honorários",
-  "description": "Organiza as guias de honorário individual em uma tabela.",
+  "name": "Guia Paga",
+  "short_name": "Guia Paga",
+  "description": "Organiza as guias de honorário e confere o repasse do hospital.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0f2a3d",
-  "theme_color": "#0f2a3d",
+  "background_color": "#F7F8FA",
+  "theme_color": "#F7F8FA",
   "lang": "pt-BR",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
